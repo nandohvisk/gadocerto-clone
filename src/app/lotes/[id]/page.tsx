@@ -3,10 +3,12 @@ import { LOTES } from "@/data/lotes";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-type Props = { params: { id: string } };
+// ✅ Tipagem correta para Next 15 (params: Promise)
+type Props = { params: Promise<{ id: string }> };
 
-export default function LoteDetalhe({ params }: Props) {
-  const lote = LOTES.find((l) => l.id === params.id);
+export default async function LoteDetalhe({ params }: Props) {
+  const { id } = await params;           // ✅ aguarda o params
+  const lote = LOTES.find((l) => l.id === id);
   if (!lote) return notFound();
 
   const waMsg = encodeURIComponent(`Olá! Tenho interesse no ${lote.titulo}. Podemos conversar?`);
@@ -15,7 +17,9 @@ export default function LoteDetalhe({ params }: Props) {
   return (
     <main className="min-h-screen">
       <div className="mx-auto max-w-4xl px-4 py-10">
-        <Link href="/lotes" className="text-sm hover:underline">← Voltar aos lotes</Link>
+        <Link href="/lotes" className="text-sm hover:underline">
+          ← Voltar aos lotes
+        </Link>
 
         <div className="mt-4 grid md:grid-cols-2 gap-6">
           <img
