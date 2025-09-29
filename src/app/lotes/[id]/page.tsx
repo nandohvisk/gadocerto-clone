@@ -1,60 +1,87 @@
 // src/app/lotes/[id]/page.tsx
-import { LOTES } from "@/data/lotes";
+import {sanityClient} from "@/sanity/lib/client";
+import {LOTE_BY_ID_QUERY} from "@/sanity/lib/queries";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import {notFound} from "next/navigation";
 
-// ✅ Tipagem correta para Next 15 (params: Promise)
-type Props = { params: Promise<{ id: string }> };
+type Lote = {
+  _id: string;
+  titulo: string;
+  categoria?: string;
+  raca?: string;
+  idadeMeses?: number;
+  pesoMedioKg?: number;
+  cabecas?: number;
+  municipio?: string;
+  uf?: string;
+  whatsapp?: string;
+  fotos?: string[];
+  videosArquivo?: string[];
+  videosUrl?: string[];
+};
 
-export default async function LoteDetalhe({ params }: Props) {
-  const { id } = await params;           // ✅ aguarda o params
-  const lote = LOTES.find((l) => l.id === id);
-  if (!lote) return notFound();
+export default async function LoteDetalhe({ params }: { params: { id: string } }) {
+  const lote = await sanityClient.fetch<Lote>(LOTE_BY_ID_QUERY, { id: params.id });
+  if (!lote?._id) return notFound();
 
   const waMsg = encodeURIComponent(`Olá! Tenho interesse no ${lote.titulo}. Podemos conversar?`);
-  const waLink = `https://wa.me/${lote.whatsapp}?text=${waMsg}`;
+  const waLink = `https://wa.me/${lote.whatsapp ?? ""}?text=${waMsg}`;
 
   return (
-    <main className="min-h-screen">
-      <div className="mx-auto max-w-4xl px-4 py-10">
-        <Link href="/lotes" className="text-sm hover:underline">
-          ← Voltar aos lotes
-        </Link>
+    <main className="mx-auto max-w-4xl px-4 py-10">
+      <Link href="/lotes" className="text-sm hover:underline">← Voltar aos lotes</Link>
 
-        <div className="mt-4 grid md:grid-cols-2 gap-6">
+      <h1 className="text-2xl font-bold mt-4">{lote.titulo}</h1>
+
+      {/* Fotos e Vídeos */}
+      <div className="mt-4 grid gap-4">
+        {lote.fotos?.map((src, i) => (
           <img
-            src={lote.fotos[0]}
-            alt={lote.titulo}
-            className="w-full h-72 object-cover rounded-2xl border"
+            key={`f${i}`}
+            src={src}
+            alt={`${lote.titulo} foto ${i+1}`}
+            className="w-full rounded-xl border"
           />
-          <div>
-            <h1 className="text-2xl font-bold">{lote.titulo}</h1>
-            <ul className="mt-3 text-sm text-gray-700 space-y-1">
-              <li><b>Categoria:</b> {lote.categoria}</li>
-              <li><b>Raça:</b> {lote.raca}</li>
-              <li><b>Idade:</b> {lote.idadeMeses} meses</li>
-              <li><b>Peso médio:</b> {lote.pesoMedioKg} kg</li>
-              <li><b>Cabeças:</b> {lote.cabecas}</li>
-              <li><b>Local:</b> {lote.municipio}/{lote.uf}</li>
-            </ul>
+        ))}
 
-            <div className="mt-6 flex gap-3">
-              <a
-                href={waLink}
-                target="_blank"
-                className="rounded-lg px-5 py-2 bg-black text-white hover:opacity-90 text-sm"
-              >
-                Conversar no WhatsApp
-              </a>
-              <Link
-                href="/contato"
-                className="rounded-lg px-5 py-2 border hover:bg-gray-50 text-sm"
-              >
-                Enviar proposta
-              </Link>
-            </div>
+        {lote.videosArquivo?.map((src, i) => (
+          <video
+            key={`vA${i}`}
+            src={src}
+            controls
+            className="w-full rounded-xl border"
+          />
+        ))}
+
+        {lote.videosUrl?.map((url, i) => (
+          <div key={`vU${i}`} className="aspect-video w-full rounded-xl border overflow-hidden">
+            <iframe
+              src={url}
+              className="w-full h-full"
+              allow="autoplay; clipboard-write; encrypted-media"
+            />
           </div>
-        </div>
+        ))}
+      </div>
+
+      {/* Detalhes do lote */}
+      <div className="mt-6 space-y-1 text-sm">
+        <div><b>Categoria:</b> {lote.categoria}</div>
+        <div><b>Raça:</b> {lote.raca}</div>
+        <div><b>Idade:</b> {lote.idadeMeses} meses</div>
+        <div><b>Peso médio:</b> {lote.pesoMedioKg} kg</div>
+        <div><b>Cabeças:</b> {lote.cabecas}</div>
+        <div><b>Local:</b> {lote.municipio}/{lote.uf}</div>
+      </div>
+
+      <div className="mt-6 flex gap-3">
+        <a
+          href={waLink}
+          target="_blank"
+          className="rounded-lg px-5 py-2 bg-black text-white hover:opacity-90 text-sm"
+        >
+          Conversar no WhatsApp
+        </a>
       </div>
     </main>
   );
