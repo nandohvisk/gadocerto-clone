@@ -1,19 +1,18 @@
-/**
- * This route is responsible for the built-in authoring environment using Sanity Studio.
- * All routes under your studio path is handled by this file using Next.js' catch-all routes:
- * https://nextjs.org/docs/routing/dynamic-routes#catch-all-routes
- *
- * You can learn more about the next-sanity package here:
- * https://github.com/sanity-io/next-sanity
- */
+// ./src/app/studio/[[...tool]]/page.tsx
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-import { NextStudio } from 'next-sanity/studio'
-import config from '../../../../sanity.config'
-
-export const dynamic = 'force-static'
-
-export { metadata, viewport } from 'next-sanity/studio'
-
-export default function StudioPage() {
-  return <NextStudio config={config} />
+export default function StudioDisabled() {
+  return (
+    <main className="mx-auto max-w-2xl p-10">
+      <h1 className="text-2xl font-bold">Área administrativa</h1>
+      <p className="mt-2 text-gray-600">
+        O Sanity Studio está desabilitado neste deploy de produção.
+      </p>
+      <p className="mt-4">
+        Para editar conteúdo, rode localmente: <code>npm run dev</code> e acesse <b>/studio</b>.
+      </p>
+    </main>
+  );
 }
+

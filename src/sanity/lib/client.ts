@@ -1,10 +1,14 @@
-import { createClient } from 'next-sanity'
+// F:\gadocerto-clone\src\sanity\lib\client.ts
+import { createClient } from "@sanity/client";
+import { apiVersion, dataset, projectId } from "../env";
 
-import { apiVersion, dataset, projectId } from '../env'
-
-export const client = createClient({
+const client = createClient({
   projectId,
   dataset,
   apiVersion,
-  useCdn: true, // Set to false if statically generating pages, using ISR or tag-based revalidation
-})
+  useCdn: false,
+});
+
+export default client;
+export { client };            // compatibilidade
+export const sanityClient = client; // compatibilidade
