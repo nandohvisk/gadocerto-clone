@@ -1,31 +1,17 @@
-<<<<<<< HEAD
-// F:\gadocerto-clone\src\app\lotes\[id]\page.tsx
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import client from "../../../sanity/lib/client";
-import { LOTE_BY_ID_QUERY } from "../../../sanity/lib/queries";
-=======
 // ./src/app/lotes/[id]/page.tsx
 import { sanityClient } from "@/sanity/lib/client";
 import { LOTE_BY_ID_QUERY } from "@/sanity/lib/queries";
->>>>>>> origin/main
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-<<<<<<< HEAD
-export default async function LoteDetalhe({ params }: { params: { id: string } }) {
-  const lote = await client.fetch<Lote | null>(LOTE_BY_ID_QUERY, { id: params.id });
-  if (!lote?._id) return notFound();
-=======
 export default async function LotePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; // 👈 Next 15: params é Promise
+  const { id } = await params; // Next 15: params é Promise
   const lote = await sanityClient.fetch(LOTE_BY_ID_QUERY, { id });
->>>>>>> origin/main
 
   if (!lote) {
     return (
@@ -53,38 +39,6 @@ export default async function LotePage({
           <p><b>WhatsApp:</b> {lote.whatsapp ?? "-"}</p>
         </div>
 
-<<<<<<< HEAD
-      <div className="mt-4 grid gap-4">
-        {lote.fotos?.map((src, i) => (
-          <img key={`f${i}`} src={src} alt={`${lote.titulo} foto ${i + 1}`} className="w-full rounded-xl border" />
-        ))}
-
-        {lote.videosArquivo?.map((src, i) => (
-          <video key={`vA${i}`} src={src} controls className="w-full rounded-xl border" />
-        ))}
-
-        {lote.videosUrl?.map((url, i) => (
-          <div key={`vU${i}`} className="aspect-video w-full rounded-xl border overflow-hidden">
-            <iframe src={url} className="w-full h-full" allow="autoplay; clipboard-write; encrypted-media" />
-          </div>
-        ))}
-      </div>
-
-      <div className="mt-6 space-y-1 text-sm">
-        <div><b>Categoria:</b> {lote.categoria}</div>
-        <div><b>Raça:</b> {lote.raca}</div>
-        <div><b>Idade:</b> {lote.idadeMeses} meses</div>
-        <div><b>Peso médio:</b> {lote.pesoMedioKg} kg</div>
-        <div><b>Cabeças:</b> {lote.cabecas}</div>
-        <div><b>Local:</b> {lote.municipio}/{lote.uf}</div>
-      </div>
-
-      <div className="mt-6 flex gap-3">
-        <a href={waLink} target="_blank" className="rounded-lg px-5 py-2 bg-black text-white hover:opacity-90 text-sm">
-          Conversar no WhatsApp
-        </a>
-      </div>
-=======
         <div className="border rounded-lg overflow-hidden">
           {Array.isArray(lote.fotos) && lote.fotos.length > 0 ? (
             <img
@@ -123,7 +77,6 @@ export default async function LotePage({
           </ul>
         </section>
       )}
->>>>>>> origin/main
     </main>
   );
 }
