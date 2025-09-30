@@ -10,30 +10,30 @@ type SiteConfig = {
   corFundo?: string;
   corTexto?: string;
   usarVideoNoHero?: boolean;
-  heroVideoResolved?: string | null; // url
-  heroImageUrl?: string | null;      // url
+  heroVideoResolved?: string | null;
+  heroImageUrl?: string | null;
   heroTitulo?: string;
   heroDescricao?: string;
   whatsappGeral?: string;
   menu?: { label: string; href: string }[];
 };
 
-const DEFAULTS: Required<Pick<
-  SiteConfig,
-  "siteTitle" | "tema" | "corPrimaria" | "corFundo" | "corTexto" | "usarVideoNoHero"
->> = {
+const DEFAULTS = {
   siteTitle: "Gado Terra Grande",
   tema: "claro",
   corPrimaria: "#16a34a",
   corFundo: "#ffffff",
   corTexto: "#111827",
   usarVideoNoHero: false,
-};
+} satisfies Required<
+  Pick<SiteConfig, "siteTitle" | "tema" | "corPrimaria" | "corFundo" | "corTexto" | "usarVideoNoHero">
+>;
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function Home() {
   const fetched = await sanityClient.fetch<SiteConfig | null>(SITE_CONFIG_QUERY);
-
-  // Merge seguro: se vier null ou faltando campos, completa com DEFAULTS
   const config: SiteConfig = { ...DEFAULTS, ...(fetched ?? {}) };
 
   return (

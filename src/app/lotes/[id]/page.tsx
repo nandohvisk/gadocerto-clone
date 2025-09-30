@@ -10,7 +10,7 @@ export default async function LotePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params; // 👈 Next 15: params é Promise
+  const { id } = await params; // Next 15: params é Promise
   const lote = await sanityClient.fetch(LOTE_BY_ID_QUERY, { id });
 
   if (!lote) {

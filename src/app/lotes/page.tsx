@@ -1,9 +1,9 @@
 // ./src/app/lotes/page.tsx
 import Link from "next/link";
 import { sanityClient } from "@/sanity/lib/client";
-import { LOTES_LIST_QUERY } from "@/sanity/lib/queries";
+import { LOTES_QUERY } from "@/sanity/lib/queries";
 
-export const dynamic = "force-dynamic"; // não pré-renderiza no build
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 type LoteThumb = {
@@ -16,7 +16,7 @@ type LoteThumb = {
 };
 
 export default async function LotesPage() {
-  const lotes = (await sanityClient.fetch<LoteThumb[]>(LOTES_LIST_QUERY)) ?? [];
+  const lotes = (await sanityClient.fetch<LoteThumb[]>(LOTES_QUERY)) ?? [];
 
   if (!lotes.length) {
     return (

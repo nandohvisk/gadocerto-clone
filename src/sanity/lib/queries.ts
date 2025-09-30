@@ -1,6 +1,6 @@
 // ./src/sanity/lib/queries.ts
 
-// Config do site — mapeia para os nomes usados na Home e aplica defaults
+// Config do site — já aplica defaults e mapeia possíveis nomes do seu schema
 export const SITE_CONFIG_QUERY = /* groq */ `
   coalesce(
     *[_type == "siteConfig"][0]{
@@ -49,7 +49,7 @@ export const LOTE_BY_ID_QUERY = /* groq */ `
 `;
 
 // Lista para /lotes (thumbnail e dados básicos)
-export const LOTES_LIST_QUERY = /* groq */ `
+export const LOTES_QUERY = /* groq */ `
   *[_type == "lote"] | order(_createdAt desc){
     _id,
     id,
@@ -59,7 +59,3 @@ export const LOTES_LIST_QUERY = /* groq */ `
     "foto": fotos[0].asset->url
   }
 `;
-
-// Compat: algumas páginas importam "LOTES_QUERY"
-export { LOTES_LIST_QUERY as LOTES_QUERY };
-
