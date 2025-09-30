@@ -79,5 +79,5 @@ export default defineType({
     }),
   ],
   // faça um único doc desse tipo (singleton)
-  __experimental_actions: ['update', 'publish', /* 'create', 'delete' removidas */],
+  
 })
