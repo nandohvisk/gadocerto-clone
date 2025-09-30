@@ -1,11 +1,18 @@
-// ./src/app/studio/[[...tool]]/page.tsx
-import { NextStudio } from "next-sanity/studio";
-import config from "../../../../sanity.config";
+'use client';
 
-export const dynamic = "force-dynamic";
+import NextDynamic from 'next/dynamic';
+import config from '../../../../sanity.config';
+
+export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-const ENABLED = process.env.NEXT_PUBLIC_ENABLE_STUDIO === "true";
+const ENABLED = process.env.NEXT_PUBLIC_ENABLE_STUDIO === 'true';
+
+// carrega o Studio apenas no cliente (evita erro no build)
+const Studio = NextDynamic(
+  () => import('next-sanity/studio').then((m) => m.NextStudio),
+  { ssr: false }
+);
 
 export default function StudioGate() {
   if (!ENABLED) {
@@ -19,5 +26,5 @@ export default function StudioGate() {
       </main>
     );
   }
-  return <NextStudio config={config} />;
+  return <Studio config={config} />;
 }
