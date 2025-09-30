@@ -2,13 +2,16 @@
 import { sanityClient } from "@/sanity/lib/client";
 import { LOTE_BY_ID_QUERY } from "@/sanity/lib/queries";
 
-export const dynamic = "force-dynamic"; // evita SSG no build
-export const revalidate = 0;            // sempre dinâmico
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-type Props = { params: { id: string } };
-
-export default async function LotePage({ params }: Props) {
-  const lote = await sanityClient.fetch(LOTE_BY_ID_QUERY, { id: params.id });
+export default async function LotePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params; // 👈 Next 15: params é Promise
+  const lote = await sanityClient.fetch(LOTE_BY_ID_QUERY, { id });
 
   if (!lote) {
     return (
@@ -38,7 +41,6 @@ export default async function LotePage({ params }: Props) {
 
         <div className="border rounded-lg overflow-hidden">
           {Array.isArray(lote.fotos) && lote.fotos.length > 0 ? (
-            // mostra a primeira foto
             <img
               src={lote.fotos[0]}
               alt={lote.titulo ?? "foto do lote"}
@@ -52,7 +54,6 @@ export default async function LotePage({ params }: Props) {
         </div>
       </div>
 
-      {/* vídeos (se houver) */}
       {Array.isArray(lote.videosArquivo) && lote.videosArquivo.length > 0 && (
         <section className="mt-8 space-y-4">
           <h2 className="text-xl font-semibold">Vídeos</h2>
@@ -79,7 +80,3 @@ export default async function LotePage({ params }: Props) {
     </main>
   );
 }
-
-// IMPORTANTE: Se houver no arquivo original algo como
-// export async function generateStaticParams() { ... }
-// remova esse export para evitar pré-renderização no build.
