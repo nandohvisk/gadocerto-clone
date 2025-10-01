@@ -1,92 +1,103 @@
-// ./src/app/page.tsx
-import Link from "next/link";
+// F:\gadocerto-clone\gadocerto-clone\src\app\page.tsx
+export const revalidate = 60;
+
 import { sanityClient } from "@/sanity/lib/client";
-import { SITE_CONFIG_QUERY } from "@/sanity/lib/queries";
+import {
+  SITE_CONFIG_QUERY,
+  HOME_TABS_QUERY,
+  CATEGORIES_QUERY,
+} from "@/sanity/lib/queries";
+import HomeTabs from "@/components/HomeTabs";
 
 type SiteConfig = {
-  siteTitle?: string;
-  tema?: "claro" | "escuro" | string;
   corPrimaria?: string;
-  corFundo?: string;
-  corTexto?: string;
   usarVideoNoHero?: boolean;
   heroVideoResolved?: string | null;
   heroImageUrl?: string | null;
-  heroTitulo?: string;
-  heroDescricao?: string;
-  whatsappGeral?: string;
-  menu?: { label: string; href: string }[];
+  heroTitulo?: string | null;
+  heroDescricao?: string | null;
 };
 
-const DEFAULTS = {
-  siteTitle: "Gado Terra Grande",
-  tema: "claro",
-  corPrimaria: "#16a34a",
-  corFundo: "#ffffff",
-  corTexto: "#111827",
-  usarVideoNoHero: false,
-} satisfies Required<
-  Pick<SiteConfig, "siteTitle" | "tema" | "corPrimaria" | "corFundo" | "corTexto" | "usarVideoNoHero">
->;
+type HomeTabsDoc = {
+  ativo?: boolean;
+  tituloComprar?: string;
+  tituloVender?: string;
+  placeholderLocal?: string;
+  botaoProcurar?: string;
+};
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+type Category = {
+  _id: string;
+  title: string;
+  tipo: "comprar" | "vender" | "ambos";
+  slug: string;
+};
 
 export default async function Home() {
-  const fetched = await sanityClient.fetch<SiteConfig | null>(SITE_CONFIG_QUERY);
-  const config: SiteConfig = { ...DEFAULTS, ...(fetched ?? {}) };
+  const [config, tabs, categorias] = await Promise.all([
+    sanityClient.fetch<SiteConfig>(SITE_CONFIG_QUERY),
+    sanityClient.fetch<HomeTabsDoc>(HOME_TABS_QUERY),
+    sanityClient.fetch<Category[]>(CATEGORIES_QUERY),
+  ]);
+
+  const usarVideo =
+    Boolean(config?.usarVideoNoHero) && Boolean(config?.heroVideoResolved);
+  const temImagem = Boolean(config?.heroImageUrl);
+  const corPrimaria = config?.corPrimaria ?? "#E46A1B";
 
   return (
-    <main style={{ background: config.corFundo, color: config.corTexto }}>
-      <section className="mx-auto max-w-6xl px-4 py-16 md:py-24">
-        <div className="grid gap-12 md:grid-cols-2 items-center">
-          <div>
-            <h1
-              className="text-4xl md:text-5xl font-bold leading-tight tracking-tight"
-              style={{ color: config.corTexto }}
-            >
-              {config.heroTitulo ?? "Compra e venda de gado, do jeito simples."}
-            </h1>
-            <p className="mt-4 max-w-xl">
-              {config.heroDescricao ?? "Encontre lotes com informações claras..."}
-            </p>
+    <main className="relative">
+      {/* BACKGROUND (vídeo ou imagem dinâmico) */}
+      <div className="absolute inset-0 -z-10">
+        {usarVideo ? (
+          <video
+            key={config!.heroVideoResolved!}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            crossOrigin="anonymous"
+            poster={temImagem ? config!.heroImageUrl! : undefined}
+            className="w-full h-full object-cover"
+          >
+            <source src={config!.heroVideoResolved!} type="video/mp4" />
+          </video>
+        ) : temImagem ? (
+          <img
+            src={config!.heroImageUrl!}
+            alt=""
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full bg-neutral-800" />
+        )}
+        <div className="absolute inset-0 bg-black/45" />
+      </div>
 
-            <div className="mt-8 flex gap-4">
-              <Link
-                href="/lotes"
-                className="rounded-xl px-6 py-3 text-white"
-                style={{ background: config.corPrimaria }}
-              >
-                Ver Lotes
-              </Link>
-              <Link
-                href="/contato"
-                className="rounded-xl px-6 py-3 border"
-                style={{ borderColor: config.corPrimaria, color: config.corPrimaria }}
-              >
-                Falar com a equipe
-              </Link>
-            </div>
-          </div>
+      {/* CONTEÚDO CENTRALIZADO */}
+      <section className="mx-auto max-w-5xl px-4 py-24 md:py-32 text-center">
+        <h1 className="text-white text-4xl md:text-6xl font-extrabold leading-tight">
+          {config?.heroTitulo ??
+            "Encontre o melhor negócio para sua fazenda, com praticidade e segurança"}
+        </h1>
 
-          <div className="rounded-2xl overflow-hidden border">
-            {config.usarVideoNoHero && config.heroVideoResolved ? (
-              <video
-                src={config.heroVideoResolved}
-                autoPlay
-                muted
-                loop
-                playsInline
-                className="w-full h-[360px] object-cover"
-              />
-            ) : (
-              <img
-                src={config.heroImageUrl ?? "/hero-gado.jpg"}
-                alt="hero"
-                className="w-full h-[360px] object-cover"
-              />
-            )}
-          </div>
+        <p className="text-white/90 mt-4 max-w-3xl mx-auto">
+          {config?.heroDescricao ??
+            "Com a Gado Terra Grande, você tem acesso a um processo de compra e venda simplificado, seguro e com apoio profissional."}
+        </p>
+
+        {/* Abas e filtros */}
+        <div className="mt-10 max-w-4xl mx-auto">
+          <HomeTabs
+            ativo={tabs?.ativo ?? true}
+            tituloComprar={tabs?.tituloComprar ?? "Quero comprar"}
+            tituloVender={tabs?.tituloVender ?? "Quero vender"}
+            placeholderLocal={tabs?.placeholderLocal ?? "Digite sua localização"}
+            botaoProcurar={tabs?.botaoProcurar ?? "Procurar"}
+            categorias={categorias ?? []}
+            corPrimaria={corPrimaria}
+          />
         </div>
       </section>
     </main>

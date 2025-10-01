@@ -1,14 +1,19 @@
-// ./sanity/schemas/siteConfig.ts
-import {defineField, defineType} from 'sanity'
+// F:\gadocerto-clone\gadocerto-clone\sanity\schemas\siteConfig.ts
+import { defineType, defineField } from 'sanity'
 
 export default defineType({
   name: 'siteConfig',
   title: 'Configurações do Site',
   type: 'document',
   fields: [
-    defineField({ name: 'siteTitle', title: 'Título do Site', type: 'string', validation: r => r.required() }),
+    defineField({
+      name: 'siteTitle',
+      title: 'Título do Site',
+      type: 'string',
+      validation: r => r.required(),
+    }),
 
-    // Tema/Cores
+    // Tema / cores
     defineField({
       name: 'tema',
       title: 'Tema',
@@ -56,20 +61,26 @@ export default defineType({
       title: 'Descrição do Herói',
       type: 'text',
       rows: 3,
-      initialValue: 'Encontre lotes com informações claras de idade, peso, raça e localização. Fale direto pelo WhatsApp.',
+      initialValue:
+        'Encontre lotes com informações claras de idade, peso, raça e localização. Fale direto pelo WhatsApp.',
     }),
 
-    // CTA / Navegação / Contatos
+    // Contatos / Menu
     defineField({ name: 'whatsappGeral', title: 'WhatsApp Geral', type: 'string' }),
     defineField({ name: 'emailContato', title: 'E-mail de Contato', type: 'string' }),
     defineField({
       name: 'menu',
       title: 'Menu (links)',
       type: 'array',
-      of: [{ type: 'object', fields: [
-        { name: 'label', title: 'Rótulo', type: 'string' },
-        { name: 'href', title: 'URL', type: 'string' },
-      ]}],
+      of: [
+        {
+          type: 'object',
+          fields: [
+            { name: 'label', title: 'Rótulo', type: 'string' },
+            { name: 'href', title: 'URL', type: 'string' },
+          ],
+        },
+      ],
       initialValue: [
         { label: 'Lotes', href: '/lotes' },
         { label: 'Canal de Ética', href: '/etica' },
@@ -78,6 +89,4 @@ export default defineType({
       ],
     }),
   ],
-  // faça um único doc desse tipo (singleton)
-  
 })
