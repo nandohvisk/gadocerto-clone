@@ -40,6 +40,18 @@ export default async function Home() {
     sanityClient.fetch<Category[]>(CATEGORIES_QUERY),
   ]);
 
+  // 🔎 LOGS DE DEBUG NO TERMINAL
+  console.log("ENV DEBUG", {
+    PROJECT: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
+    DATASET: process.env.NEXT_PUBLIC_SANITY_DATASET,
+  });
+
+  console.log("HERO DEBUG", {
+    usarVideoNoHero: config?.usarVideoNoHero,
+    heroVideoResolved: config?.heroVideoResolved,
+    heroImageUrl: config?.heroImageUrl,
+  });
+
   const usarVideo =
     Boolean(config?.usarVideoNoHero) && Boolean(config?.heroVideoResolved);
   const temImagem = Boolean(config?.heroImageUrl);
