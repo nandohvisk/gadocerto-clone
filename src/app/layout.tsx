@@ -1,8 +1,7 @@
+// F:\gadocerto-clone\gadocerto-clone\src\app\layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import WhatsAppButton from "@/components/WhatsAppButton"; // 👈 novo import
+import Topbar from "@/components/Topbar";
 
 export const metadata: Metadata = {
   title: "Gado Terra Grande — Compra e venda de gado",
@@ -13,10 +12,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR">
       <body className="antialiased text-gray-900">
-        <Navbar />
+        <Topbar />
         {children}
-        <Footer />
-        <WhatsAppButton /> {/* 👈 agora usamos o componente */}
       </body>
     </html>
   );

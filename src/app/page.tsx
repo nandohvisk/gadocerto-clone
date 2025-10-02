@@ -7,7 +7,8 @@ import {
   HOME_TABS_QUERY,
   CATEGORIES_QUERY,
 } from "@/sanity/lib/queries";
-import HomeTabs from "@/components/HomeTabs";
+// import HomeTabs from "@/components/HomeTabs"; // ❌ removido
+import HeroSearch from "@/components/HeroSearch"; // ✅ novo
 
 type SiteConfig = {
   corPrimaria?: string;
@@ -99,17 +100,9 @@ export default async function Home() {
             "Com a Gado Terra Grande, você tem acesso a um processo de compra e venda simplificado, seguro e com apoio profissional."}
         </p>
 
-        {/* Abas e filtros */}
+        {/* 🔎 novo formulário com autocomplete e redirecionamento */}
         <div className="mt-10 max-w-4xl mx-auto">
-          <HomeTabs
-            ativo={tabs?.ativo ?? true}
-            tituloComprar={tabs?.tituloComprar ?? "Quero comprar"}
-            tituloVender={tabs?.tituloVender ?? "Quero vender"}
-            placeholderLocal={tabs?.placeholderLocal ?? "Digite sua localização"}
-            botaoProcurar={tabs?.botaoProcurar ?? "Procurar"}
-            categorias={categorias ?? []}
-            corPrimaria={corPrimaria}
-          />
+          <HeroSearch accent={corPrimaria} />
         </div>
       </section>
     </main>
