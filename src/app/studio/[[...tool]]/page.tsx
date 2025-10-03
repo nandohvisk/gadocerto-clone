@@ -1,23 +1,21 @@
-// src/app/studio/[[...tool]]/page.tsx
-'use client';
+// F:\gadoterragrande\gadocerto-clone\src\app\studio\[[...tool]]\page.tsx
+"use client";
 
-import { NextStudio } from 'next-sanity/studio';
-import config from '../../../../sanity.config';
+import { NextStudio } from "next-sanity/studio";
+import config from "../../../../sanity.config";
 
-
-console.log('NEXT_PUBLIC_ENABLE_STUDIO:', process.env.NEXT_PUBLIC_ENABLE_STUDIO);
-const ENABLED = process.env.NEXT_PUBLIC_ENABLE_STUDIO === 'true';
-
+// Em produção mostramos aviso; em desenvolvimento abrimos o Studio.
 export default function StudioPage() {
-  if (!ENABLED) {
+  const isDev = process.env.NODE_ENV === "development";
+
+  if (!isDev) {
     return (
-      <main className="mx-auto max-w-2xl p-10">
-        <h1 className="text-2xl font-bold">Área administrativa</h1>
-        <p className="mt-2 text-gray-600">
-          O Sanity Studio está desabilitado neste deploy.
-        </p>
-        <p className="mt-4">
-          Para editar conteúdo localmente, rode <code>npm run dev</code> e acesse <b>/studio</b>.
+      <main className="mx-auto max-w-2xl p-6">
+        <h1 className="text-2xl font-semibold mb-2">Área administrativa</h1>
+        <p>O Sanity Studio está desabilitado neste deploy.</p>
+        <p className="mt-2">
+          Para editar conteúdo localmente, rode <code>npm run dev</code> e acesse{" "}
+          <code>/studio</code>.
         </p>
       </main>
     );
@@ -25,4 +23,3 @@ export default function StudioPage() {
 
   return <NextStudio config={config} />;
 }
-

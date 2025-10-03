@@ -1,4 +1,4 @@
-// F:\gadocerto-clone\gadocerto-clone\src\app\page.tsx
+// F:\gadoterragrande\gadocerto-clone\src\app\page.tsx
 export const revalidate = 60;
 
 import { sanityClient } from "@/sanity/lib/client";
@@ -7,8 +7,8 @@ import {
   HOME_TABS_QUERY,
   CATEGORIES_QUERY,
 } from "@/sanity/lib/queries";
-// import HomeTabs from "@/components/HomeTabs"; // ❌ removido
-import HeroSearch from "@/components/HeroSearch"; // ✅ novo
+import HeroSearch from "@/components/HeroSearch";
+import BeneficiosSection from "@/components/BeneficiosSection";
 
 type SiteConfig = {
   corPrimaria?: string;
@@ -35,23 +35,11 @@ type Category = {
 };
 
 export default async function Home() {
-  const [config, tabs, categorias] = await Promise.all([
+  const [config /* tabs, categorias */] = await Promise.all([
     sanityClient.fetch<SiteConfig>(SITE_CONFIG_QUERY),
     sanityClient.fetch<HomeTabsDoc>(HOME_TABS_QUERY),
     sanityClient.fetch<Category[]>(CATEGORIES_QUERY),
   ]);
-
-  // 🔎 LOGS DE DEBUG NO TERMINAL
-  console.log("ENV DEBUG", {
-    PROJECT: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
-    DATASET: process.env.NEXT_PUBLIC_SANITY_DATASET,
-  });
-
-  console.log("HERO DEBUG", {
-    usarVideoNoHero: config?.usarVideoNoHero,
-    heroVideoResolved: config?.heroVideoResolved,
-    heroImageUrl: config?.heroImageUrl,
-  });
 
   const usarVideo =
     Boolean(config?.usarVideoNoHero) && Boolean(config?.heroVideoResolved);
@@ -88,7 +76,7 @@ export default async function Home() {
         <div className="absolute inset-0 bg-black/45" />
       </div>
 
-      {/* CONTEÚDO CENTRALIZADO */}
+      {/* HERO */}
       <section className="mx-auto max-w-5xl px-4 py-24 md:py-32 text-center">
         <h1 className="text-white text-4xl md:text-6xl font-extrabold leading-tight">
           {config?.heroTitulo ??
@@ -100,11 +88,14 @@ export default async function Home() {
             "Com a Gado Terra Grande, você tem acesso a um processo de compra e venda simplificado, seguro e com apoio profissional."}
         </p>
 
-        {/* 🔎 novo formulário com autocomplete e redirecionamento */}
+        {/* 🔎 Formulário em linha com autocomplete e redirecionamento */}
         <div className="mt-10 max-w-4xl mx-auto">
           <HeroSearch accent={corPrimaria} />
         </div>
       </section>
+
+      {/* SEÇÃO DE BENEFÍCIOS (configurável no Sanity) */}
+      <BeneficiosSection />
     </main>
   );
 }

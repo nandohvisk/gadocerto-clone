@@ -1,3 +1,4 @@
+// F:\gadoterragrande\gadocerto-clone\src\components\LoteCard.tsx
 import Link from "next/link";
 
 export type Lote = {
@@ -23,7 +24,7 @@ export function LoteCard({ lote }: { lote: Lote }) {
   return (
     <div className="border rounded-2xl overflow-hidden flex flex-col">
       <img
-        src={lote.fotos[0]}
+        src={lote.fotos?.[0]}
         alt={lote.titulo}
         className="w-full h-44 object-cover"
       />
@@ -48,6 +49,7 @@ export function LoteCard({ lote }: { lote: Lote }) {
           <a
             href={waLink}
             target="_blank"
+            rel="noopener noreferrer"
             className="flex-1 text-center rounded-lg px-3 py-2 bg-black text-white text-sm hover:opacity-90"
           >
             WhatsApp

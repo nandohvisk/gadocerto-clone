@@ -1,4 +1,4 @@
-// F:\gadocerto-clone\gadocerto-clone\sanity.config.ts
+// F:\gadoterragrande\gadocerto-clone\sanity.config.ts
 import { defineConfig } from 'sanity'
 import { deskTool } from 'sanity/desk'
 import { visionTool } from '@sanity/vision'
@@ -8,7 +8,8 @@ import lote from './sanity/schemas/lote'
 import siteConfig from './sanity/schemas/siteConfig'
 import category from './sanity/schemas/category'
 import homeTabs from './sanity/schemas/homeTabs'
-import lead from './sanity/schemas/lead' // ✅ novo schema para Cadastros (clientes/vendedores)
+import lead from './sanity/schemas/lead'
+import beneficios from './sanity/schemas/beneficios' // ✅ novo
 
 export default defineConfig({
   name: 'default',
@@ -23,7 +24,8 @@ export default defineConfig({
       siteConfig,
       category,
       homeTabs,
-      lead, // ✅ adicionado ao Studio
+      lead,
+      beneficios, // ✅ registrado no Studio
     ],
   },
 })
