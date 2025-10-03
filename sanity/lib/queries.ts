@@ -1,4 +1,6 @@
 // ./src/sanity/lib/queries.ts
+
+// Configurações do site (igual você já usava)
 export const SITE_CONFIG_QUERY = /* groq */ `
   coalesce(
     *[_type == "siteConfig"][0]{
@@ -24,4 +26,28 @@ export const SITE_CONFIG_QUERY = /* groq */ `
       "usarVideoNoHero": false
     }
   )
+`;
+
+// >>> NOVO <<<
+// Últimos 6 lotes publicados para mostrar na home
+// Ajuste o nome do tipo/campos caso seu schema use outros nomes.
+export const LOTES_DESTAQUE_QUERY = /* groq */ `
+*[_type == "lote" && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...6]{
+  _id,
+  titulo,
+  categoria,
+  raca,
+  idadeMeses,
+  pesoMedioKg,
+  cabecas,
+  municipio,
+  uf,
+  whatsapp,
+  precoLabel,
+  // Traz URLs de mídia do campo "fotos" (image ou file); se no seu schema
+  // o campo tiver outro nome, troque somente essa linha.
+  "fotos": fotos[]{
+    "url": coalesce(asset->url, url)
+  }
+}
 `;

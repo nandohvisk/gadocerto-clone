@@ -1,4 +1,4 @@
-// F:\gadoterragrande\gadocerto-clone\src\components\HeroSearch.tsx
+// F:\gadocerto-clone\gadocerto-clone\src\components\HeroSearch.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +10,8 @@ type City = {
   microrregiao: { mesorregiao: { UF: { sigla: string } } };
 };
 
+type Category = { id?: string; label: string; value: string };
+
 function normalize(str: string) {
   return str.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().trim();
 }
@@ -20,29 +22,89 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
   const router = useRouter();
 
   const [tab, setTab] = useState<"comprar" | "vender">("comprar");
+
+  // CIDADES
   const [allCities, setAllCities] = useState<City[] | null>(null);
   const [loadingCities, setLoadingCities] = useState(false);
-
   const [query, setQuery] = useState("");
   const [openList, setOpenList] = useState(false);
   const [highlight, setHighlight] = useState(0);
 
+  // CATEGORIAS
+  const [cats, setCats] = useState<Category[]>([]);
   const [categoria, setCategoria] = useState("");
+
   const boxRef = useRef<HTMLDivElement>(null);
 
-  // carrega lista de municípios do IBGE ao focar no campo
+  // ---------- categorias do painel ----------
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/categories");
+        const data: Category[] = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          setCats(data);
+        } else {
+          setCats([
+            { label: "Bezerro", value: "bezerro" },
+            { label: "Novilha", value: "novilha" },
+            { label: "Boi gordo", value: "boi" },
+            { label: "Vaca", value: "vaca" },
+          ]);
+        }
+      } catch {
+        setCats([
+          { label: "Bezerro", value: "bezerro" },
+          { label: "Novilha", value: "novilha" },
+          { label: "Boi gordo", value: "boi" },
+          { label: "Vaca", value: "vaca" },
+        ]);
+      }
+    })();
+  }, []);
+
+  // ---------- cidades ----------
+  async function fetchCitiesDirectFromIBGE(): Promise<City[]> {
+    const r = await fetch(
+      "https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome",
+      { cache: "force-cache" }
+    );
+    const data: any[] = await r.json();
+    return data.map((c) => ({
+      id: c.id,
+      nome: c.nome,
+      microrregiao: {
+        mesorregiao: { UF: { sigla: c?.microrregiao?.mesorregiao?.UF?.sigla ?? "" } },
+      },
+    }));
+  }
+
+  // tenta a rota local; se falhar (firewall/proxy), usa IBGE direto no navegador
   async function ensureCitiesLoaded() {
     if (allCities || loadingCities) return;
     try {
       setLoadingCities(true);
-      const res = await fetch(
-        "https://servicodados.ibge.gov.br/api/v1/localidades/municipios?orderBy=nome",
-        { cache: "force-cache" }
-      );
-      const data: City[] = await res.json();
-      setAllCities(data);
+
+      let ok = false;
+      try {
+        const res = await fetch("/api/ibge/municipios");
+        if (res.ok) {
+          const data: City[] = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            setAllCities(data);
+            ok = true;
+          }
+        }
+      } catch {
+        // ignora, vamos cair no fallback
+      }
+
+      if (!ok) {
+        const fallback = await fetchCitiesDirectFromIBGE();
+        setAllCities(fallback);
+      }
     } catch (e) {
-      console.error("Falha ao carregar cidades do IBGE:", e);
+      console.error("Falha ao obter cidades:", e);
       setAllCities([]);
     } finally {
       setLoadingCities(false);
@@ -61,9 +123,9 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
   const matches = useMemo(() => {
     if (!allCities || !query) return [];
     const q = normalize(query);
-    const starts = allCities.filter(c => normalize(c.nome).startsWith(q));
+    const starts = allCities.filter((c) => normalize(c.nome).startsWith(q));
     const contains = allCities.filter(
-      c => !normalize(c.nome).startsWith(q) && normalize(c.nome).includes(q)
+      (c) => !normalize(c.nome).startsWith(q) && normalize(c.nome).includes(q)
     );
     return [...starts, ...contains].slice(0, 8);
   }, [allCities, query]);
@@ -77,10 +139,10 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
     if (!openList || matches.length === 0) return;
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setHighlight(h => (h + 1) % matches.length);
+      setHighlight((h) => (h + 1) % matches.length);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
-      setHighlight(h => (h - 1 + matches.length) % matches.length);
+      setHighlight((h) => (h - 1 + matches.length) % matches.length);
     } else if (e.key === "Enter") {
       e.preventDefault();
       const item = matches[highlight];
@@ -94,7 +156,6 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
     if (query) params.set("localizacao", query);
     if (categoria) params.set("categoria", categoria);
     params.set("tipo", tab);
-    // redireciona para /lotes
     router.push(`/lotes?${params.toString()}`);
   }
 
@@ -130,13 +191,17 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
             className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
             style={{ borderColor: "#D1D5DB" }}
             onFocus={ensureCitiesLoaded}
-            onChange={(e) => { setQuery(e.target.value); setOpenList(true); setHighlight(0); }}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setOpenList(true);
+              setHighlight(0);
+            }}
             onKeyDown={onKeyDown}
             value={query}
             autoComplete="off"
           />
           {openList && matches.length > 0 && (
-            <div className="absolute left-0 right-0 mt-1 max-h-72 overflow-auto rounded-xl border bg-white shadow-lg z-20">
+            <div className="absolute left-0 right-0 mt-1 max-h-72 overflow-auto rounded-xl border bg-white shadow-lg z-50">
               {matches.map((c, idx) => {
                 const uf = c.microrregiao.mesorregiao.UF.sigla;
                 const active = idx === highlight;
@@ -157,7 +222,7 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
           )}
         </div>
 
-        {/* categoria */}
+        {/* categoria (dinâmica do painel) */}
         <select
           className="md:w-60 w-full rounded-xl border px-4 py-3"
           style={{ borderColor: "#D1D5DB" }}
@@ -165,10 +230,11 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
           onChange={(e) => setCategoria(e.target.value)}
         >
           <option value="">Categoria</option>
-          <option value="bezerro">Bezerro</option>
-          <option value="novilha">Novilha</option>
-          <option value="boi">Boi gordo</option>
-          <option value="vaca">Vaca</option>
+          {cats.map((c) => (
+            <option key={c.id ?? c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
         </select>
 
         {/* botão */}

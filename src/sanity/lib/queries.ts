@@ -1,64 +1,50 @@
-// F:\gadocerto-clone\gadocerto-clone\src\sanity\lib\queries.ts
-import { groq } from 'next-sanity';
+// ./src/sanity/lib/queries.ts
 
-/** Configurações do site (hero, cores, etc.) */
-export const SITE_CONFIG_QUERY = groq/* groq */ `
-*[_type == "siteConfig"][0]{
-  siteTitle,
-  tema,
-  corPrimaria,
-  corFundo,
-  corTexto,
-  usarVideoNoHero,
-  // nomes alinhados ao seu schema
-  "heroVideoResolved": coalesce(heroVideoArquivo.asset->url, heroVideoUrl),
-  "heroImageUrl": heroImagem.asset->url,
-  heroTitulo,
-  heroDescricao,
-  whatsappGeral,
-  menu
-}
+// Config do site (com URLs resolvidas para vídeo e imagem do Hero)
+export const SITE_CONFIG_QUERY = /* groq */ `
+  coalesce(
+    *[_type == "siteConfig"][0]{
+      siteTitle,
+      tema,
+      "corPrimaria": coalesce(corPrimaria, "#16a34a"),
+      "corFundo":    coalesce(corFundo, "#ffffff"),
+      "corTexto":    coalesce(corTexto, "#111827"),
+
+      // >>> mídias do Hero (sempre resolvidas para URL)
+      "heroVideoResolved": heroVideo.asset->url,
+      "heroImageUrl": heroImage.asset->url,
+
+      usarVideoNoHero,
+      heroTitulo,
+      heroDescricao,
+      whatsappGeral,
+      menu[]{label, href}
+    },
+    {
+      "siteTitle": "Gado Terra Grande",
+      "tema": "claro",
+      "corPrimaria": "#16a34a",
+      "corFundo": "#ffffff",
+      "corTexto": "#111827",
+      "usarVideoNoHero": false
+    }
+  )
 `;
 
-/** Configuração das abas da Home */
-export const HOME_TABS_QUERY = groq/* groq */ `
-*[_type == "homeTabs"][0]{
-  ativo,
-  tituloComprar,
-  tituloVender,
-  placeholderLocal,
-  botaoProcurar
-}
-`;
-
-/** Lista de categorias para filtros */
-export const CATEGORIES_QUERY = groq/* groq */ `
-*[_type == "category"]|order(title asc){
+// Últimos 9 lotes publicados (home)
+export const LOTES_DESTAQUE_QUERY = /* groq */ `
+*[_type == "lote" && !(_id in path("drafts.**"))] | order(_createdAt desc)[0...9]{
   _id,
-  title,
-  tipo,
-  "slug": coalesce(slug.current, "")
-}
-`;
-
-/** 🔹 Lista de lotes (usado em /lotes) */
-export const LOTES_QUERY = groq/* groq */ `
-*[_type == "lote"]|order(_createdAt desc){
-  ...,
-  // urls comodas
-  "coverUrl": coalesce(capa.asset->url, imagemCapa.asset->url, imagens[0].asset->url),
-  "categoriaSlug": coalesce(categoria->slug.current, categoria.slug.current),
-}
-`;
-
-/** 🔹 Lote por ID (usado em /lotes/[id]) */
-export const LOTE_BY_ID_QUERY = groq/* groq */ `
-*[_type == "lote" && _id == $id][0]{
-  ...,
-  "coverUrl": coalesce(capa.asset->url, imagemCapa.asset->url, imagens[0].asset->url),
-  "categoriaSlug": coalesce(categoria->slug.current, categoria.slug.current),
-  // se houver relação com categoria/autor, já expando nomes básicos
-  categoria->{ _id, title, "slug": slug.current },
-  autor->{ _id, nome, "fotoUrl": foto.asset->url }
+  titulo,
+  categoria,
+  raca,
+  idadeMeses,
+  pesoMedioKg,
+  cabecas,
+  municipio,
+  uf,
+  whatsapp,
+  precoLabel,
+  "fotos": fotos[]{ "url": coalesce(asset->url, url) }
 }
 `;

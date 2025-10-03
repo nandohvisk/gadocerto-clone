@@ -1,92 +1,72 @@
-// F:\gadocerto-clone\gadocerto-clone\sanity\schemas\siteConfig.ts
-import { defineType, defineField } from 'sanity'
+// sanity/schemas/siteConfig.ts
+import { defineType, defineField } from "sanity";
 
 export default defineType({
-  name: 'siteConfig',
-  title: 'Configurações do Site',
-  type: 'document',
+  name: "siteConfig",
+  title: "Configurações do Site",
+  type: "document",
   fields: [
+    defineField({ name: "siteTitle", title: "Título do site", type: "string" }),
+
     defineField({
-      name: 'siteTitle',
-      title: 'Título do Site',
-      type: 'string',
-      validation: r => r.required(),
+      name: "tema",
+      title: "Tema padrão",
+      type: "string",
+      options: { list: ["claro", "escuro"] },
     }),
 
-    // Tema / cores
-    defineField({
-      name: 'tema',
-      title: 'Tema',
-      type: 'string',
-      options: { list: ['claro', 'escuro'] },
-      initialValue: 'claro',
-    }),
-    defineField({ name: 'corPrimaria', title: 'Cor Primária (hex)', type: 'string', initialValue: '#111111' }),
-    defineField({ name: 'corFundo', title: 'Cor de Fundo (hex)', type: 'string', initialValue: '#ffffff' }),
-    defineField({ name: 'corTexto', title: 'Cor de Texto (hex)', type: 'string', initialValue: '#111111' }),
+    defineField({ name: "corPrimaria", title: "Cor primária (hex)", type: "string" }),
+    defineField({ name: "corFundo", title: "Cor de fundo (hex)", type: "string" }),
+    defineField({ name: "corTexto", title: "Cor do texto (hex)", type: "string" }),
 
-    // Herói (vídeo OU imagem)
+    // ---- HERO ----
+    defineField({ name: "heroTitulo", title: "Título do Hero", type: "string" }),
+    defineField({ name: "heroDescricao", title: "Descrição do Hero", type: "text" }),
+
     defineField({
-      name: 'usarVideoNoHero',
-      title: 'Usar Vídeo no Herói?',
-      type: 'boolean',
-      initialValue: false,
+      name: "heroVideo",
+      title: "Vídeo do Hero",
+      type: "file",
+      options: { accept: "video/*" }, // mp4/webm/ogg
+      description: "Vídeo exibido no fundo do Hero.",
     }),
+
     defineField({
-      name: 'heroVideoArquivo',
-      title: 'Vídeo do Herói (upload)',
-      type: 'file',
-      options: { accept: 'video/*' },
-    }),
-    defineField({
-      name: 'heroVideoUrl',
-      title: 'Vídeo do Herói (URL externa)',
-      type: 'url',
-      description: 'Opcional. Use se quiser embutir de CDN/YouTube/etc.',
-    }),
-    defineField({
-      name: 'heroImagem',
-      title: 'Imagem do Herói',
-      type: 'image',
+      name: "heroImage",
+      title: "Imagem do Hero (poster/fallback)",
+      type: "image",
       options: { hotspot: true },
-    }),
-    defineField({
-      name: 'heroTitulo',
-      title: 'Título do Herói',
-      type: 'string',
-      initialValue: 'Compra e venda de gado, do jeito simples.',
-    }),
-    defineField({
-      name: 'heroDescricao',
-      title: 'Descrição do Herói',
-      type: 'text',
-      rows: 3,
-      initialValue:
-        'Encontre lotes com informações claras de idade, peso, raça e localização. Fale direto pelo WhatsApp.',
+      description: "Imagem usada como poster do vídeo e fallback.",
     }),
 
-    // Contatos / Menu
-    defineField({ name: 'whatsappGeral', title: 'WhatsApp Geral', type: 'string' }),
-    defineField({ name: 'emailContato', title: 'E-mail de Contato', type: 'string' }),
     defineField({
-      name: 'menu',
-      title: 'Menu (links)',
-      type: 'array',
+      name: "usarVideoNoHero",
+      title: "Usar vídeo no Hero?",
+      type: "boolean",
+      initialValue: true,
+    }),
+    // ---------------
+
+    defineField({
+      name: "whatsappGeral",
+      title: "WhatsApp (DDI + DDD + número)",
+      type: "string",
+      description: "Ex.: +5565998765432",
+    }),
+
+    defineField({
+      name: "menu",
+      title: "Menu",
+      type: "array",
       of: [
         {
-          type: 'object',
+          type: "object",
           fields: [
-            { name: 'label', title: 'Rótulo', type: 'string' },
-            { name: 'href', title: 'URL', type: 'string' },
+            { name: "label", title: "Rótulo", type: "string" },
+            { name: "href", title: "Link", type: "string" },
           ],
         },
       ],
-      initialValue: [
-        { label: 'Lotes', href: '/lotes' },
-        { label: 'Canal de Ética', href: '/etica' },
-        { label: 'Termos', href: '/termos' },
-        { label: 'Contato', href: '/contato' },
-      ],
     }),
   ],
-})
+});
