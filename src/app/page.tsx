@@ -1,4 +1,6 @@
-// ./src/app/page.tsx
+// F:\gadoterragrande\gadocerto-clone\src\app\page.tsx
+export const dynamic = 'force-dynamic';
+
 import Link from "next/link";
 import { sanityClient } from "@/sanity/lib/client";
 import { SITE_CONFIG_QUERY, LOTES_DESTAQUE_QUERY } from "@/sanity/lib/queries";
