@@ -36,3 +36,12 @@ img {
   display: block;
   border-radius: 0.5rem; /* imagens levemente arredondadas */
 }
+
+/* Boizinho piscando */
+@keyframes blink {
+  0%, 49%   { opacity: 1; }
+  50%, 100% { opacity: 0.2; }
+}
+.blink-slow {
+  animation: blink 1.4s infinite steps(2, end);
+}
