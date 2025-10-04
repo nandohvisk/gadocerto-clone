@@ -54,9 +54,9 @@ export const LOTES_PROJECTION = /* groq */ `
 }
 `;
 
-// ========== HOME: LOTES EM DESTAQUE ==========
+// ========== HOME: LOTES EM DESTAQUE (AGORA SEM DEPENDER DE FLAGS) ==========
 export const LOTES_DESTAQUE_QUERY = /* groq */ `
-*[_type == "lote" && (publicarNaHome == true || destaque == true)]
+*[_type == "lote"]
 | order(_createdAt desc)[0...6]
 ${LOTES_PROJECTION}
 `;
