@@ -1,4 +1,4 @@
-// ./src/components/LoteCard.tsx
+// F:\gadoterragrande\gadocerto-clone\src\components\LoteCard.tsx
 import Link from "next/link";
 
 export type Lote = {
@@ -21,7 +21,7 @@ export type Lote = {
 export type LoteCardProps = {
   lote: Lote;
   primary?: string;     // cor do “ping”
-  isLoggedIn?: boolean; // se true, mostra o preço
+  isLoggedIn?: boolean; // se true, mostra preço e botão de WhatsApp
 };
 
 function resolveBadgeGlyph(badgeIcon?: string | null): string {
@@ -93,7 +93,7 @@ export default function LoteCard({
               <span>{lote.precoLabel ?? "Preço sob consulta"}</span>
             </div>
           ) : (
-            // Não logado: apenas o emoji com ondulação; tooltip LATERAL no hover (BOTÃO primeiro)
+            // Não logado: emoji piscando + ping + tooltip com CTA para login
             <div className="group relative inline-flex items-center">
               {/* Onda (ping) atrás do emoji */}
               <span
@@ -101,17 +101,17 @@ export default function LoteCard({
                 style={{ background: primary, filter: "blur(0.4px)" }}
                 aria-hidden
               />
-              {/* EMOJI — sem círculo branco */}
+              {/* EMOJI piscando (sem círculo branco) */}
               <a
                 href="/login"
-                className="relative z-[1] text-[22px] leading-none select-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)]"
+                className="relative z-[1] text-[22px] leading-none select-none drop-shadow-[0_1px_1px_rgba(0,0,0,0.45)] blink-slow"
                 aria-label="Faça login para ver o preço"
                 title="Faça login para ver o preço"
               >
                 {glyph}
               </a>
 
-              {/* Tooltip lateral: ORDEM trocada → botão primeiro, texto depois */}
+              {/* Tooltip lateral: botão primeiro, texto depois */}
               <div className="hidden group-hover:flex items-center gap-3 ml-3">
                 <a
                   href="/login"
@@ -151,16 +151,25 @@ export default function LoteCard({
           >
             Detalhes
           </Link>
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-1 text-center rounded-xl px-3 py-2 text-white text-sm shadow hover:shadow-md transition-shadow"
-            style={{ background: ctaGradient }}
-          >
-            WhatsApp
-          </a>
+
+          {isLoggedIn ? (
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 text-center rounded-xl px-3 py-2 text-white text-sm shadow hover:shadow-md transition-shadow"
+              style={{ background: ctaGradient }}
+            >
+              WhatsApp
+            </a>
+          ) : null}
         </div>
+
+        {!isLoggedIn && (
+          <p className="mt-2 text-xs text-gray-500">
+            Faça <a href="/login" className="underline">login</a> para ver preço e liberar o WhatsApp.
+          </p>
+        )}
       </div>
     </div>
   );

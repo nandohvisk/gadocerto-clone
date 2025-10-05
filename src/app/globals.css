@@ -4,6 +4,9 @@
 :root {
   --background: #f9fafb; /* cinza bem claro no lugar do branco puro */
   --foreground: #111827; /* cinza quase preto */
+
+  /* Cor primária padrão (fallback; a real vem via style="--btn-color") */
+  --btn-color: #10b981;
 }
 
 /* Tema escuro refinado */
@@ -29,9 +32,7 @@ body {
 }
 
 /* Ajustes globais */
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 img {
   display: block;
   border-radius: 0.5rem; /* imagens levemente arredondadas */
@@ -44,4 +45,37 @@ img {
 }
 .blink-slow {
   animation: blink 1.4s infinite steps(2, end);
+}
+
+/* ===========================
+   Botões reutilizáveis
+   (sem classes com colchetes no @apply)
+   =========================== */
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-2xl px-5 py-3
+           font-semibold transition-all duration-200
+           shadow-sm hover:shadow-md
+           focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+  /* efeito "apertar" sem usar scale-[0.98] */
+  .btn:active { transform: scale(0.98); }
+
+  /* Botão cheio: usa --btn-color e escurece no hover */
+  .btn-dynamic {
+    background-color: var(--btn-color);
+    color: #fff;
+    text-shadow: 0 1px 0 rgba(0,0,0,.15);
+  }
+  .btn-dynamic:hover { filter: brightness(0.92); }
+  .btn-dynamic:focus { @apply ring-gray-300; }
+
+  /* Botão contornado */
+  .btn-outline-dynamic {
+    background-color: transparent;
+    color: var(--btn-color);
+    border: 1px solid currentColor;
+  }
+  .btn-outline-dynamic:hover { background-color: rgba(0,0,0,0.04); }
+  .btn-outline-dynamic:focus { @apply ring-gray-300; }
 }

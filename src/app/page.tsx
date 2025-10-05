@@ -6,6 +6,7 @@ import { sanityClient } from "@/sanity/lib/client";
 import { SITE_CONFIG_QUERY, LOTES_DESTAQUE_QUERY } from "@/sanity/lib/queries";
 import LoteCard, { Lote } from "@/components/LoteCard";
 import HeroSearch from "@/components/HeroSearch";
+import BeneficiosSection from "@/components/BeneficiosSection";
 
 type SiteConfig = {
   siteTitle: string;
@@ -124,7 +125,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <Link
+        <Link
             href="/lotes"
             className="hidden sm:inline-flex px-4 py-2 rounded-xl text-white"
             style={{ backgroundImage: gradient }}
@@ -150,6 +151,9 @@ export default async function Home() {
           </div>
         )}
       </section>
+
+      {/* >>> AQUI: seção de Benefícios (3 caixas) <<< */}
+      <BeneficiosSection />
     </main>
   );
 }
