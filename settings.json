@@ -1,0 +1,16 @@
+{
+  // Desliga o alerta "Unknown at rule" para @apply/@layer do Tailwind
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore",
+
+  // (garantia extra) desliga a validação CSS nativa neste workspace
+  "css.validate": false,
+
+  // Faz o VS Code tratar .css como Tailwind/PostCSS (melhora o IntelliSense)
+  "tailwindCSS.includeLanguages": {
+    "css": "css",
+    "postcss": "css",
+    "plaintext": "html"
+  }
+}

@@ -2,34 +2,28 @@
 import { NextResponse } from "next/server";
 import { sanityClient } from "@/sanity/lib/client";
 
-// força execução no servidor a cada chamada
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const qRaw = (searchParams.get("q") || "").trim();
-    const categoriaRaw = (searchParams.get("categoria") || "").trim(); // pode ser label ou value
+    const categoriaRaw = (searchParams.get("categoria") || "").trim();
     const ufRaw = (searchParams.get("uf") || "").trim();
 
-    // GROQ match é case-insensitive; usamos prefix search com *
+    // prefix search p/ GROQ 'match'
     const q = qRaw ? `${qRaw}*` : null;
     const categoria = categoriaRaw ? `${categoriaRaw}*` : null;
-    const uf = ufRaw ? ufRaw : null;
+    const uf = ufRaw || null;
 
     const query = /* groq */ `
 *[_type == "lote"
-  // UF (igualdade simples)
   && (!defined($uf) || uf == $uf)
-
-  // categoria: aceita label ou value da ref (ou campo legado)
   && (!defined($categoria) ||
       categoriaRef->label match $categoria ||
       categoriaRef->value match $categoria ||
       categoria match $categoria
   )
-
-  // busca geral
   && (!defined($q) || (
         titulo match $q ||
         municipio match $q ||
@@ -52,10 +46,8 @@ export async function GET(req: Request) {
 }
 `;
 
-    // ⚠️ IMPORTANTE: sempre enviar as chaves, com null quando vazio
-    const params = { q, categoria, uf };
-
-    const rows = await sanityClient.fetch<any[]>(query, params);
+    // sempre envie as chaves (null quando vazio) para não quebrar o GROQ
+    const rows = await sanityClient.fetch<any[]>(query, { q, categoria, uf });
 
     const data = (rows ?? []).map((r) => ({
       _id: r._id,

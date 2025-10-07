@@ -1,15 +1,27 @@
+/* vscode-css-lint disable unknownAtRules */
 @import "tailwindcss";
 
-/* Paleta mais suave e moderna */
+/* ===========================
+   Paleta base
+   =========================== */
 :root {
-  --background: #f9fafb; /* cinza bem claro no lugar do branco puro */
-  --foreground: #111827; /* cinza quase preto */
-
-  /* Cor primária padrão (fallback; a real vem via style="--btn-color") */
-  --btn-color: #10b981;
+  --background: #f9fafb; /* cinza bem claro (menos brilho que branco puro) */
+  --foreground: #111827; /* quase preto */
+  --btn-color: #10b981; /* fallback antigo */
 }
 
-/* Tema escuro refinado */
+/* ===========================
+   Paleta AGRO unificada
+   =========================== */
+:root {
+  --agro-forest: #1f3a2d; /* verde profundo p/ faixas e header/rodapé */
+  --agro-moss:   #2e5e3e; /* hover sobre forest */
+  --agro-wheat:  #eab308; /* âmbar do CTA primário */
+  --agro-cream:  #f7f5ef; /* fundo “premium” */
+  --agro-text:   #111827; /* títulos */
+  --agro-muted:  #6b7280; /* descrições/auxiliares */
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #111827;
@@ -17,65 +29,93 @@
   }
 }
 
-/* Tipografia e reset */
+/* ===========================
+   Tipografia e reset
+   =========================== */
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--agro-cream);
+  color: var(--agro-text);
   font-family: "Inter", "Geist Sans", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.6;
 }
 
-/* Container padrão */
-:root {
-  --container: 80rem; /* ~max-w-7xl */
-}
+:root { --container: 80rem; }
 
-/* Ajustes globais */
 * { box-sizing: border-box; }
-img {
-  display: block;
-  border-radius: 0.5rem; /* imagens levemente arredondadas */
-}
+img { display: block; border-radius: 0.5rem; }
 
-/* Boizinho piscando */
-@keyframes blink {
-  0%, 49%   { opacity: 1; }
-  50%, 100% { opacity: 0.2; }
-}
-.blink-slow {
-  animation: blink 1.4s infinite steps(2, end);
+/* ===========================
+   Animações
+   =========================== */
+@keyframes blink { 0%,49%{opacity:1} 50%,100%{opacity:.2} }
+.blink-slow { animation: blink 1.4s infinite steps(2, end); }
+
+/* ===========================
+   Tipografia utilitária
+   =========================== */
+@layer components {
+  .h-section { @apply text-2xl md:text-3xl font-bold tracking-tight; }
+  .p-muted   { color: var(--agro-muted); }
 }
 
 /* ===========================
    Botões reutilizáveis
-   (sem classes com colchetes no @apply)
    =========================== */
 @layer components {
   .btn {
-    @apply inline-flex items-center gap-2 rounded-2xl px-5 py-3
+    @apply inline-flex items-center gap-2 rounded-lg px-5 py-3
            font-semibold transition-all duration-200
            shadow-sm hover:shadow-md
            focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
-  /* efeito "apertar" sem usar scale-[0.98] */
-  .btn:active { transform: scale(0.98); }
+  .btn:active { transform: translateY(1px); }
 
-  /* Botão cheio: usa --btn-color e escurece no hover */
+  /* Estilos existentes */
   .btn-dynamic {
     background-color: var(--btn-color);
-    color: #fff;
-    text-shadow: 0 1px 0 rgba(0,0,0,.15);
+    color:#fff;
+    text-shadow:0 1px 0 rgba(0,0,0,.15);
   }
   .btn-dynamic:hover { filter: brightness(0.92); }
   .btn-dynamic:focus { @apply ring-gray-300; }
 
-  /* Botão contornado */
   .btn-outline-dynamic {
-    background-color: transparent;
-    color: var(--btn-color);
-    border: 1px solid currentColor;
+    background:transparent;
+    color:var(--btn-color);
+    border:1px solid currentColor;
   }
   .btn-outline-dynamic:hover { background-color: rgba(0,0,0,0.04); }
   .btn-outline-dynamic:focus { @apply ring-gray-300; }
+
+  /* Novos padrões AGRO */
+  .btn-primary {
+    background-image: linear-gradient(to bottom, var(--agro-wheat), #d4a106);
+    color: #1c1c1c;
+  }
+  .btn-primary:hover { filter: brightness(1.06); }
+  .btn-primary:focus-visible {
+    box-shadow: 0 0 0 4px rgba(234,179,8,0.35);
+  }
+
+  .btn-secondary {
+    background: rgba(255,255,255,0.95);
+    color: var(--agro-forest);
+    border: 1px solid rgba(255,255,255,0.4);
+    backdrop-filter: blur(6px);
+  }
+  .btn-secondary:hover { background: #ffffff; }
+  .btn-secondary:focus-visible {
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.35);
+  }
+}
+
+/* ===========================
+   Faixas / áreas “forest”
+   =========================== */
+.agro-forest {
+  background: var(--agro-forest);
+}
+.agro-forest:hover {
+  background: var(--agro-moss);
 }

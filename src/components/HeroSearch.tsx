@@ -18,7 +18,11 @@ function normalize(str: string) {
 
 type Props = { accent?: string };
 
-export default function HeroSearch({ accent = "#E06B2D" }: Props) {
+/**
+ * Agora com fallback de cor inline no botão (gradiente âmbar),
+ * além das classes .btn .btn-primary do globals.css.
+ */
+export default function HeroSearch({ accent = "var(--agro-wheat)" }: Props) {
   const router = useRouter();
 
   const [tab, setTab] = useState<"comprar" | "vender">("comprar");
@@ -79,7 +83,7 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
     }));
   }
 
-  // tenta a rota local; se falhar (firewall/proxy), usa IBGE direto no navegador
+  // tenta a rota local; se falhar, usa IBGE direto no navegador
   async function ensureCitiesLoaded() {
     if (allCities || loadingCities) return;
     try {
@@ -188,7 +192,7 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
           <input
             type="text"
             placeholder="Digite sua localização (cidade)"
-            className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2"
+            className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-amber-300"
             style={{ borderColor: "#D1D5DB" }}
             onFocus={ensureCitiesLoaded}
             onChange={(e) => {
@@ -224,7 +228,7 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
 
         {/* categoria (dinâmica do painel) */}
         <select
-          className="md:w-60 w-full rounded-xl border px-4 py-3"
+          className="md:w-60 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
           style={{ borderColor: "#D1D5DB" }}
           value={categoria}
           onChange={(e) => setCategoria(e.target.value)}
@@ -237,11 +241,11 @@ export default function HeroSearch({ accent = "#E06B2D" }: Props) {
           ))}
         </select>
 
-        {/* botão */}
+        {/* botão (padronizado + fallback inline para o gradiente) */}
         <button
           type="submit"
-          className="rounded-xl px-6 py-3 font-medium text-white md:w-44 w-full"
-          style={{ background: accent }}
+          className="btn btn-primary md:w-44 w-full"
+          style={{ backgroundImage: "linear-gradient(to bottom, #eab308, #d4a106)" }}
         >
           Procurar
         </button>

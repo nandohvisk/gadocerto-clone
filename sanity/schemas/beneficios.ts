@@ -1,36 +1,44 @@
+// F:\gadocerto-clone\gadocerto-clone\sanity\schemas\beneficio.ts
 import { defineField, defineType } from "sanity";
 
 export default defineType({
-  name: "beneficios",
-  title: "Seção de Benefícios",
+  name: "beneficio",
+  title: "Benefício",
   type: "document",
   fields: [
     defineField({
-      name: "tituloSuperior",
-      title: "Título Superior",
+      name: "titulo",
+      title: "Título",
       type: "string",
-      initialValue: "POR QUE A GADO TERRA GRANDE?",
+      validation: (Rule) => Rule.required().max(80),
     }),
     defineField({
-      name: "subtitulo",
-      title: "Subtítulo",
-      type: "string",
-      initialValue: "Negócio Feito com Confiança e Clareza.",
+      name: "descricao",
+      title: "Descrição",
+      type: "text",
+      rows: 3,
+      validation: (Rule) => Rule.required().max(300),
     }),
     defineField({
-      name: "caixas",
-      title: "Caixas de Benefícios",
-      type: "array",
-      of: [
-        {
-          type: "object",
-          fields: [
-            { name: "icone", title: "Ícone (emoji ou nome)", type: "string" },
-            { name: "titulo", title: "Título", type: "string" },
-            { name: "descricao", title: "Descrição", type: "text" },
-          ],
-        },
-      ],
+      name: "cor",
+      title: "Tema de cor",
+      type: "string",
+      options: {
+        list: [
+          { title: "Campo (Verde)", value: "campo" },
+          { title: "Trigo (Âmbar)", value: "trigo" },
+          { title: "Céu (Azul/Ciano)", value: "ceu" },
+        ],
+        layout: "radio",
+        direction: "horizontal",
+      },
+      initialValue: "campo",
+    }),
+    defineField({
+      name: "order",
+      title: "Ordem de exibição",
+      type: "number",
+      description: "Define a sequência em que os cartões aparecem.",
     }),
   ],
 });
