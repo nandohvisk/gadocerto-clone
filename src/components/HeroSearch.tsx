@@ -1,4 +1,3 @@
-// F:\gadocerto-clone\gadocerto-clone\src\components\HeroSearch.tsx
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -19,8 +18,8 @@ function normalize(str: string) {
 type Props = { accent?: string };
 
 /**
- * Agora com fallback de cor inline no botão (gradiente âmbar),
- * além das classes .btn .btn-primary do globals.css.
+ * Busca categorias do painel (sem fallback chumbado) e IBGE para cidades.
+ * O botão usa as classes globais .btn .btn-primary.
  */
 export default function HeroSearch({ accent = "var(--agro-wheat)" }: Props) {
   const router = useRouter();
@@ -34,8 +33,9 @@ export default function HeroSearch({ accent = "var(--agro-wheat)" }: Props) {
   const [openList, setOpenList] = useState(false);
   const [highlight, setHighlight] = useState(0);
 
-  // CATEGORIAS
+  // CATEGORIAS (somente do painel)
   const [cats, setCats] = useState<Category[]>([]);
+  const [catsLoading, setCatsLoading] = useState(true);
   const [categoria, setCategoria] = useState("");
 
   const boxRef = useRef<HTMLDivElement>(null);
@@ -44,25 +44,24 @@ export default function HeroSearch({ accent = "var(--agro-wheat)" }: Props) {
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/categories");
-        const data: Category[] = await res.json();
-        if (Array.isArray(data) && data.length > 0) {
-          setCats(data);
-        } else {
-          setCats([
-            { label: "Bezerro", value: "bezerro" },
-            { label: "Novilha", value: "novilha" },
-            { label: "Boi gordo", value: "boi" },
-            { label: "Vaca", value: "vaca" },
-          ]);
-        }
-      } catch {
-        setCats([
-          { label: "Bezerro", value: "bezerro" },
-          { label: "Novilha", value: "novilha" },
-          { label: "Boi gordo", value: "boi" },
-          { label: "Vaca", value: "vaca" },
-        ]);
+        setCatsLoading(true);
+        const res = await fetch("/api/categories", { cache: "no-store" });
+        const data: any[] = await res.json();
+        const normalized: Category[] = Array.isArray(data)
+          ? data
+              .map((d) => ({
+                id: d?.id ?? d?._id,
+                label: String(d?.label ?? "").trim(),
+                value: String(d?.value ?? "").trim(),
+              }))
+              .filter((d) => d.label && d.value)
+          : [];
+        setCats(normalized);
+      } catch (e) {
+        console.error("Falha ao carregar categorias:", e);
+        setCats([]);
+      } finally {
+        setCatsLoading(false);
       }
     })();
   }, []);
@@ -226,22 +225,28 @@ export default function HeroSearch({ accent = "var(--agro-wheat)" }: Props) {
           )}
         </div>
 
-        {/* categoria (dinâmica do painel) */}
+        {/* categoria (somente do painel) */}
         <select
           className="md:w-60 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
           style={{ borderColor: "#D1D5DB" }}
           value={categoria}
           onChange={(e) => setCategoria(e.target.value)}
+          disabled={catsLoading}
         >
-          <option value="">Categoria</option>
-          {cats.map((c) => (
-            <option key={c.id ?? c.value} value={c.value}>
-              {c.label}
-            </option>
-          ))}
+          {catsLoading && <option value="">Carregando categorias…</option>}
+          {!catsLoading && (
+            <>
+              <option value="">Categoria</option>
+              {cats.map((c, idx) => (
+                <option key={`${c.id ?? c.value}-${idx}`} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </>
+          )}
         </select>
 
-        {/* botão (padronizado + fallback inline para o gradiente) */}
+        {/* botão */}
         <button
           type="submit"
           className="btn btn-primary md:w-44 w-full"

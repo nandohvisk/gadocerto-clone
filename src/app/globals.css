@@ -119,3 +119,122 @@ img { display: block; border-radius: 0.5rem; }
 .agro-forest:hover {
   background: var(--agro-moss);
 }
+
+/* =========================================================
+   APRIMORADORES PARA OS CARDS DE LOTE (NOVOS ESTILOS)
+   ========================================================= */
+
+/* Botão CTA grande (Ver lote) */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 12px;
+  color: #1c1c1c;
+  font-weight: 700;
+  letter-spacing: .2px;
+  box-shadow: 0 2px 0 rgba(0,0,0,.08);
+  transition: transform .06s ease, box-shadow .2s ease, filter .2s ease;
+}
+.btn-cta:hover { filter: brightness(1.04); box-shadow: 0 4px 10px rgba(0,0,0,.10); }
+.btn-cta:active { transform: translateY(1px); }
+
+/* Botão WhatsApp menor e destacado */
+.btn-wa {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #22c55e;          /* verde puro */
+  box-shadow: 0 2px 0 rgba(0,0,0,.08);
+  transition: transform .06s ease, filter .2s ease;
+}
+.btn-wa:hover { filter: brightness(1.05); }
+.btn-wa:active { transform: translateY(1px); }
+
+/* Badge circular do boizinho com ondas */
+.cattle-badge {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  z-index: 5;
+}
+.cattle-badge::after,
+.cattle-badge::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 100%;
+  height: 100%;
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 9999px;
+  border: 2px solid rgba(255,255,255,0.9);
+  opacity: .6;
+  pointer-events: none;
+  animation: cattle-wave 1.8s ease-out infinite;
+}
+.cattle-badge::before { animation-delay: .9s; }
+@keyframes cattle-wave {
+  0%   { transform: translate(-50%, -50%) scale(1);   opacity: .55; }
+  70%  { transform: translate(-50%, -50%) scale(2.1); opacity: 0;   }
+  100% { transform: translate(-50%, -50%) scale(2.1); opacity: 0;   }
+}
+
+/* ---- Botão neutro grande (cinza claro -> escuro no hover) ---- */
+@layer components {
+  .btn-neutral {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-semibold transition-colors;
+    @apply bg-gray-100 text-gray-800 border border-gray-200;
+  }
+  .btn-neutral:hover {
+    @apply bg-gray-200 text-gray-900;
+  }
+
+  /* WhatsApp: compacto, chamativo, sem exagero */
+  .btn-whatsapp {
+    @apply inline-flex items-center justify-center rounded-full p-3 text-white shadow;
+    background-image: linear-gradient(180deg, #25D366, #1EBE57);
+  }
+  .btn-whatsapp:hover {
+    filter: brightness(1.04);
+  }
+}
+
+/* --- efeito de ondas no selo do boi --- */
+@keyframes ringPulse {
+  0%   { transform: scale(1);   opacity: .35; }
+  70%  { transform: scale(1.9); opacity: 0;   }
+  100% { transform: scale(1.9); opacity: 0;   }
+}
+.ring-pulse {
+  pointer-events: none;
+  animation: ringPulse 1.8s ease-out infinite;
+  background: radial-gradient(circle, rgba(255,255,255,.9) 30%, rgba(255,255,255,0) 60%);
+  filter: drop-shadow(0 2px 2px rgba(0,0,0,.15));
+  border-radius: 9999px;
+}
+
+/* --- botão neutro grande (claro -> escuro no hover) --- */
+@layer components {
+  .btn-neutral {
+    @apply inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold transition;
+    background: #f3f4f6;     /* cinza claro */
+    color: #111827;          /* quase preto */
+  }
+  .btn-neutral:hover {
+    background: #e5e7eb;     /* cinza um pouco mais escuro */
+  }
+}
