@@ -2,131 +2,100 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import LoteCard, { Lote } from "./LoteCard";
 
 type Category = { id?: string; label: string; value: string };
 
-const UFs = [
-  "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI",
-  "PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO",
-];
+type Props = {
+  value?: string;
+  onChange?: (v: string) => void;
+  className?: string;
+  placeholder?: string;
+};
 
-type Props = { initialLots: Lote[] };
-
-export default function LotesExplorer({ initialLots }: Props) {
+export default function LotesExplorer({
+  value = "",
+  onChange,
+  className = "",
+  placeholder = "Categoria",
+}: Props) {
   const [cats, setCats] = useState<Category[]>([]);
-  const [categoria, setCategoria] = useState("");
-  const [uf, setUF] = useState("");
-  const [q, setQ] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [hadError, setHadError] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/categories");
-        const data: Category[] = await res.json();
-        setCats(Array.isArray(data) && data.length ? data : [
-          { label: "Bezerro", value: "bezerro" },
-          { label: "Novilha", value: "novilha" },
-          { label: "Boi gordo", value: "boi" },
-          { label: "Vaca", value: "vaca" },
-        ]);
-      } catch {
-        setCats([
-          { label: "Bezerro", value: "bezerro" },
-          { label: "Novilha", value: "novilha" },
-          { label: "Boi gordo", value: "boi" },
-          { label: "Vaca", value: "vaca" },
-        ]);
+        setLoading(true);
+        setHadError(false);
+
+        const res = await fetch("/api/categories", { cache: "no-store" });
+        const data: any[] = await res.json();
+
+        // normaliza + remove vazios
+        const normalized: Category[] = Array.isArray(data)
+          ? data
+              .map((d) => ({
+                id: d?.id ?? d?._id ?? undefined,
+                label: String(d?.label ?? "").trim(),
+                value: String(d?.value ?? "").trim(),
+              }))
+              .filter((d) => d.label && d.value)
+          : [];
+
+        // dedup por 'value' para evitar duplicados
+        const byValue = new Map<string, Category>();
+        for (const c of normalized) {
+          if (!byValue.has(c.value)) byValue.set(c.value, c);
+        }
+
+        setCats(Array.from(byValue.values()));
+      } catch (e) {
+        console.error("categories api error:", e);
+        setCats([]);
+        setHadError(true);
+      } finally {
+        setLoading(false);
       }
     })();
   }, []);
 
-  const filtered = useMemo(() => {
-    const nq = q.trim().toLowerCase();
-    return initialLots.filter((l) => {
-      const okCat = categoria ? (l.categoria ?? "").toLowerCase() === categoria.toLowerCase() : true;
-      const okUF  = uf        ? (l.uf ?? "").toLowerCase()        === uf.toLowerCase()         : true;
-
-      const texto = `${l.titulo ?? ""} ${l.municipio ?? ""} ${l.raca ?? ""} ${l.categoria ?? ""}`;
-      const okQ = nq ? texto.toLowerCase().includes(nq) : true;
-
-      return okCat && okUF && okQ;
-    });
-  }, [initialLots, categoria, uf, q]);
-
-  function clearFilters() {
-    setCategoria("");
-    setUF("");
-    setQ("");
-  }
+  // chave estável: id se existir; senão, value
+  const options = useMemo(
+    () =>
+      cats.map((c) => ({
+        key: (c.id ?? c.value) as string,
+        label: c.label,
+        value: c.value,
+      })),
+    [cats]
+  );
 
   return (
-    <div>
-      {/* Filtros */}
-      <div className="mb-4 grid gap-3 sm:grid-cols-[1fr_180px_160px_140px]">
-        <input
-          type="text"
-          placeholder="Buscar por título, cidade, raça…"
-          className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-amber-300"
-          style={{ borderColor: "#D1D5DB" }}
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-        />
+    <select
+      aria-label="Filtro por categoria"
+      className={`rounded-xl border px-4 py-3 focus:outline-none focus:ring-2 focus:ring-amber-300 ${className}`}
+      value={value}
+      onChange={(e) => onChange?.(e.target.value)}
+      disabled={loading}
+      style={{ borderColor: "#D1D5DB" }}
+    >
+      {/* placeholder */}
+      <option value="">{loading ? "Carregando categorias…" : placeholder}</option>
 
-        <select
-          className="w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
-          style={{ borderColor: "#D1D5DB" }}
-          value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
-        >
-          <option value="">Categoria</option>
-          {cats.map((c) => (
-            <option key={c.id ?? c.value} value={c.value}>{c.label}</option>
-          ))}
-        </select>
-
-        <select
-          className="w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
-          style={{ borderColor: "#D1D5DB" }}
-          value={uf}
-          onChange={(e) => setUF(e.target.value)}
-        >
-          <option value="">UF</option>
-          {UFs.map((sigla) => (
-            <option key={sigla} value={sigla}>{sigla}</option>
-          ))}
-        </select>
-
-        <button onClick={clearFilters} className="btn btn-secondary">
-          Limpar filtros
-        </button>
-      </div>
-
-      {/* Contagem */}
-      <div className="mb-4 text-sm p-muted">
-        {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
-      </div>
-
-      {/* Grid */}
-      {filtered.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-gray-300 bg-white shadow-sm p-10 text-center">
-          <h3 className="text-base font-semibold text-gray-900">Nenhum resultado</h3>
-          <p className="mt-1 text-sm p-muted">
-            Ajuste os filtros ou limpe-os para ver todos os lotes disponíveis.
-          </p>
-          <div className="mt-5 flex items-center justify-center">
-            <button onClick={clearFilters} className="btn btn-primary">
-              Limpar e mostrar todos
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((lote) => (
-            <LoteCard key={lote.id} lote={lote} isLoggedIn={false} />
-          ))}
-        </div>
+      {/* erro: mostramos opção informativa sem bloquear o select */}
+      {hadError && !loading && (
+        <option value="" disabled>
+          Não foi possível carregar as categorias
+        </option>
       )}
-    </div>
+
+      {/* categorias */}
+      {!loading &&
+        options.map((c) => (
+          <option key={c.key} value={c.value}>
+            {c.label}
+          </option>
+        ))}
+    </select>
   );
 }
