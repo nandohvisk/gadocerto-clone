@@ -7,7 +7,7 @@ import { SITE_CONFIG_QUERY, LOTES_DESTAQUE_QUERY } from "@/sanity/lib/queries";
 import LoteCard, { Lote } from "@/components/LoteCard";
 import HeroSearch from "@/components/HeroSearch";
 import BeneficiosSection from "@/components/BeneficiosSection";
-import CtaLotesSection from "@/components/CtaLotesSection"; // CTA
+import CtaLotesSection from "@/components/CtaLotesSection"; // CTA (agora no penúltimo bloco)
 
 type SiteConfig = {
   siteTitle: string;
@@ -102,9 +102,6 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA entre o vídeo e os lotes */}
-      <CtaLotesSection />
-
       {/* LOTES EM DESTAQUE */}
       <section className="relative z-10 mx-auto max-w-7xl px-6 py-14">
         <div className="flex items-end justify-between mb-6">
@@ -148,6 +145,10 @@ export default async function Home() {
 
       {/* Benefícios (3 caixas) */}
       <BeneficiosSection />
+
+      {/* CTA movida para o penúltimo bloco.
+          O último bloco será o de Endereço/Telefone/WhatsApp (virá do Sanity). */}
+      <CtaLotesSection />
     </main>
   );
 }
