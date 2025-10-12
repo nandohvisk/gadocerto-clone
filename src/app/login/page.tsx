@@ -2,248 +2,291 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-type City = { nome: string; uf: string };
+// 🔹 lê a cor do Sanity (dataset público)
+import { sanityClient } from "@/sanity/lib/client";
+import { SITE_CONFIG_QUERY } from "@/sanity/lib/queries";
+
+type Step = "phone" | "name" | "code";
 
 export default function LoginPage() {
-  const [step, setStep] = useState<"form" | "code">("form");
+  const [step, setStep] = useState<Step>("phone");
 
-  // form (controlado: não some ao enviar)
-  const [nome, setNome] = useState("");
-  const [celular, setCelular] = useState("");
-  const [fazenda, setFazenda] = useState("");
-  const [cityQuery, setCityQuery] = useState("");
-  const [citySelected, setCitySelected] = useState("");
+  // dados do usuário
+  const [phone, setPhone] = useState("");
+  const [name, setName] = useState("");
 
-  // autocomplete
-  const [openSug, setOpenSug] = useState(false);
-  const [loadingSug, setLoadingSug] = useState(false);
-  const [sug, setSug] = useState<City[]>([]);
-  const popRef = useRef<HTMLDivElement | null>(null);
-  const inpRef = useRef<HTMLInputElement | null>(null);
-  const debouncedQuery = useDebounce(cityQuery, 200);
+  // código (6 dígitos)
+  const [code, setCode] = useState<string[]>(Array(6).fill(""));
+  const codeRefs = useRef<Array<HTMLInputElement | null>>([]);
 
+  // paleta (⚠️ agora dinâmica via Sanity)
+  const [accent, setAccent] = useState("#E46A1B"); // corPrimaria
+  const GREEN = "#1C4532"; // verde institucional
+
+  // busca a cor primária do Sanity quando a página abre
   useEffect(() => {
     let ignore = false;
-    async function run() {
-      if (!debouncedQuery || debouncedQuery.trim().length < 2) {
-        setSug([]);
-        return;
-      }
+    (async () => {
       try {
-        setLoadingSug(true);
-        const r = await fetch(
-          `/api/ibge/municipios?q=${encodeURIComponent(debouncedQuery)}`
-        );
-        if (!r.ok) throw new Error("erro");
-        const data: City[] = await r.json();
-        if (!ignore) setSug(data.slice(0, 12));
+        const cfg = await sanityClient.fetch<{ corPrimaria?: string }>(SITE_CONFIG_QUERY);
+        if (!ignore && cfg?.corPrimaria) setAccent(cfg.corPrimaria);
       } catch {
-        if (!ignore) setSug([]);
-      } finally {
-        if (!ignore) setLoadingSug(false);
+        // fallback permanece
       }
-    }
-    run();
+    })();
     return () => {
       ignore = true;
     };
-  }, [debouncedQuery]);
+  }, []);
 
   useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (!openSug) return;
-      const t = e.target as Node;
-      if (
-        popRef.current &&
-        !popRef.current.contains(t) &&
-        inpRef.current &&
-        !inpRef.current.contains(t)
-      ) {
-        setOpenSug(false);
-      }
+    if (step === "code") {
+      codeRefs.current[0]?.focus();
     }
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, [openSug]);
+  }, [step]);
 
-  function onSubmitForm(e: React.FormEvent) {
-    e.preventDefault(); // não recarrega nem limpa
-    setStep("code"); // simula envio de código
-  }
-
-  function onValidate(e: React.FormEvent) {
+  function submitPhone(e: React.FormEvent) {
     e.preventDefault();
-    alert("✅ Código validado (simulação). Depois liberaremos os preços.");
+    if (!phone.trim()) return;
+    // aqui você chamaria sua API para enviar o código / criar o cadastro
+    setStep("name");
   }
 
-  const showCity = useMemo(
-    () => citySelected || cityQuery,
-    [cityQuery, citySelected]
-  );
+  function submitName(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    // poderia atualizar o cadastro com o nome aqui
+    setStep("code");
+  }
+
+  function submitCode(e: React.FormEvent) {
+    e.preventDefault();
+    const joined = code.join("");
+    if (joined.length < 6) return;
+    // validar código na API e autenticar usuário
+    alert("✅ Código validado (simulação).");
+    // redirecionar conforme sua regra
+  }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-[#F7F4EE] px-4 py-20">
-      <div className="w-full max-w-xl rounded-2xl bg-white p-8 shadow-lg border border-gray-200">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#1C4532] mb-2 text-center">
-          Login do Produtor
-        </h1>
-        <p className="text-sm text-gray-700 text-center">
-          Informe seus dados para receber um código de verificação no WhatsApp.
-          Após validar, os <strong>preços dos lotes</strong> ficam liberados.
-        </p>
-
-        {step === "form" ? (
-          <form onSubmit={onSubmitForm} className="mt-6 grid gap-4">
-            <div className="grid gap-1">
-              <label className="text-sm font-medium text-gray-800">
-                Nome completo <span className="text-red-600">*</span>
-              </label>
-              <input
-                required
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                className="rounded-xl border border-gray-300 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-200"
-                placeholder="Ex.: João da Silva"
-              />
-            </div>
-
-            <div className="grid gap-1">
-              <label className="text-sm font-medium text-gray-800">
-                Celular (WhatsApp) <span className="text-red-600">*</span>
-              </label>
-              <input
-                required
-                inputMode="tel"
-                value={celular}
-                onChange={(e) => setCelular(e.target.value)}
-                className="rounded-xl border border-gray-300 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-200"
-                placeholder="(65) 9 9999-9999"
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="grid gap-1">
-                <span className="text-sm font-medium text-gray-800">
-                  Nome da fazenda
-                </span>
-                <input
-                  value={fazenda}
-                  onChange={(e) => setFazenda(e.target.value)}
-                  className="rounded-xl border border-gray-300 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-200"
-                  placeholder="Fazenda São José"
-                />
-              </label>
-
-              <label className="grid gap-1 relative">
-                <span className="text-sm font-medium text-gray-800">
-                  Localização (cidade/UF)
-                </span>
-                <input
-                  ref={inpRef}
-                  value={showCity}
-                  onChange={(e) => {
-                    setCitySelected("");
-                    setCityQuery(e.target.value);
-                  }}
-                  onFocus={() => setOpenSug(true)}
-                  className="rounded-xl border border-gray-300 px-3 py-2 outline-none focus:ring-4 focus:ring-emerald-200"
-                  placeholder="Cuiabá/MT"
-                />
-                {openSug && (sug.length > 0 || loadingSug) && (
-                  <div
-                    ref={popRef}
-                    className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-gray-200 bg-white shadow-lg"
-                  >
-                    {loadingSug ? (
-                      <div className="px-3 py-2 text-sm text-gray-500">
-                        Carregando…
-                      </div>
-                    ) : (
-                      sug.map((c, i) => {
-                        const label = `${c.nome}/${c.uf}`;
-                        return (
-                          <button
-                            type="button"
-                            key={`${c.nome}-${c.uf}-${i}`}
-                            className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50"
-                            onClick={() => {
-                              setCitySelected(label);
-                              setCityQuery(label);
-                              setOpenSug(false);
-                            }}
-                          >
-                            {label}
-                          </button>
-                        );
-                      })
-                    )}
-                  </div>
-                )}
-              </label>
-            </div>
-
-            <div className="pt-2">
-              <button
-                type="submit"
-                className="w-full inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold shadow-sm transition focus:outline-none focus-visible:ring-4"
-                style={{ backgroundColor: "#C9A227", color: "#1C4532" }}
-              >
-                Receber código no WhatsApp
-              </button>
-            </div>
-          </form>
-        ) : (
-          <form onSubmit={onValidate} className="mt-6 grid gap-4">
-            <div className="grid gap-1">
-              <span className="text-sm text-gray-700">
-                Enviamos um código para <strong>{celular}</strong>.
-              </span>
-              <input
-                inputMode="numeric"
-                maxLength={6}
-                placeholder="000000"
-                className="w-40 rounded-xl border border-gray-300 px-3 py-2 tracking-widest outline-none focus:ring-4 focus:ring-emerald-200"
-                required
-              />
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setStep("form")}
-                className="rounded-xl border border-gray-300 px-5 py-2.5 font-semibold text-gray-800 bg-white hover:bg-gray-50"
-              >
-                Voltar
-              </button>
-              <button
-                type="submit"
-                className="rounded-xl px-5 py-2.5 font-semibold text-white"
-                style={{ backgroundColor: "#1C4532" }}
-              >
-                Validar
-              </button>
-            </div>
-          </form>
-        )}
-
-        <div className="mt-6 text-sm text-center">
-          <Link href="/" className="underline text-[#1C4532]">
-            Voltar ao início
+    <main
+      className="min-h-screen flex items-center justify-center px-4 py-10"
+      style={{ backgroundColor: "#F7F4EE" }}
+    >
+      <div className="w-full max-w-[520px] rounded-2xl bg-white shadow-2xl border border-black/10 overflow-hidden">
+        {/* header minimalista */}
+        <div className="flex items-center justify-between px-6 py-4">
+          <h1 className="text-xl md:text-2xl font-extrabold" style={{ color: GREEN }}>
+            Fazer login
+          </h1>
+          <Link href="/" aria-label="Fechar" className="rounded-full p-2 hover:bg-black/5">
+            ✕
           </Link>
+        </div>
+
+        {/* linha suave */}
+        <div
+          className="h-px w-full"
+          style={{ background: "linear-gradient(to right, transparent, #00000014, transparent)" }}
+        />
+
+        <div className="px-6 pb-7 pt-6">
+          <p className="text-sm text-black/70 mb-5">
+            Digite seus dados e aproveite os benefícios exclusivos da conta gratuita.
+          </p>
+
+          {/* STEP 1 — telefone */}
+          {step === "phone" && (
+            <form onSubmit={submitPhone} className="grid gap-4">
+              <label className="grid gap-1">
+                <span className="text-sm font-medium text-black/80">Digite seu telefone</span>
+                <input
+                  inputMode="tel"
+                  placeholder="(65) 9 8477-5566"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="rounded-xl border border-black/15 px-3 py-3 outline-none focus:ring-4"
+                  style={{ boxShadow: `0 0 0 4px ${toRgba(accent, 0.25)}` }}
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-[#1c1c1c] transition-all duration-200 hover:brightness-105 active:translate-y-[1px] focus:outline-none focus-visible:ring-4"
+                  style={{
+                    backgroundImage: `linear-gradient(to bottom, ${accent}, ${shade(accent, -10)})`,
+                    boxShadow: `0 0 0 4px ${toRgba(accent, 0.25)}`,
+                  }}
+                >
+                  Próximo
+                </button>
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold border border-black/10 bg-white hover:bg-black/5"
+                >
+                  Voltar
+                </Link>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 2 — nome */}
+          {step === "name" && (
+            <form onSubmit={submitName} className="grid gap-4">
+              <div>
+                <span className="text-xs text-black/60">Telefone</span>
+                <input
+                  disabled
+                  value={phone}
+                  className="w-full mt-1 rounded-xl border border-black/10 bg-black/5 px-3 py-3"
+                />
+              </div>
+
+              <label className="grid gap-1">
+                <span className="text-sm font-medium text-black/80">Nome completo</span>
+                <input
+                  placeholder="seu nome"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="rounded-xl border border-black/15 px-3 py-3 outline-none focus:ring-4"
+                  style={{ boxShadow: `0 0 0 4px ${toRgba(accent, 0.25)}` }}
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-[#1c1c1c] transition-all duration-200 hover:brightness-105 active:translate-y-[1px] focus:outline-none focus-visible:ring-4"
+                  style={{
+                    backgroundImage: `linear-gradient(to bottom, ${accent}, ${shade(accent, -10)})`,
+                    boxShadow: `0 0 0 4px ${toRgba(accent, 0.25)}`,
+                  }}
+                >
+                  Próximo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep("phone")}
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold border border-black/10 bg-white hover:bg-black/5"
+                >
+                  Voltar
+                </button>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 3 — código */}
+          {step === "code" && (
+            <form onSubmit={submitCode} className="grid gap-4">
+              <p className="text-sm text-black/70">
+                Agora digite o código enviado ao <b>WhatsApp</b> do número informado.
+              </p>
+
+              <div className="flex items-center justify-between gap-2">
+                {code.map((v, i) => (
+                  <input
+                    key={i}
+                    ref={(el) => {
+                      codeRefs.current[i] = el; // ✅ callback ref sem retorno
+                    }}
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={v}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "").slice(0, 1);
+                      const next = [...code];
+                      next[i] = val;
+                      setCode(next);
+                      if (val && i < 5) codeRefs.current[i + 1]?.focus();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Backspace" && !code[i] && i > 0) {
+                        codeRefs.current[i - 1]?.focus();
+                      }
+                    }}
+                    className="h-12 w-12 text-center text-lg rounded-xl border border-black/15 focus:outline-none focus:ring-4"
+                    style={{ boxShadow: `0 0 0 4px ${toRgba(accent, 0.25)}` }}
+                  />
+                ))}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <button
+                  type="submit"
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold text-white"
+                  style={{ backgroundColor: GREEN }}
+                >
+                  Próximo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setStep("name")}
+                  className="inline-flex items-center justify-center rounded-xl px-5 py-3 font-semibold border border-black/10 bg-white hover:bg-black/5"
+                >
+                  Voltar
+                </button>
+              </div>
+
+              <div className="mt-2">
+                <button
+                  type="button"
+                  className="text-sm underline underline-offset-4 hover:opacity-80"
+                >
+                  Enviar novamente
+                </button>
+              </div>
+
+              <div className="mt-4 border-t pt-4">
+                <button
+                  type="button"
+                  className="w-full rounded-xl border px-5 py-2.5 font-medium hover:bg-black/5"
+                >
+                  Enviar pelo Telegram
+                </button>
+
+                <div className="mt-4 text-xs text-black/60">
+                  Dúvidas ou problemas? Entre em contato com a nossa equipe:
+                  <br />
+                  <b>Telefone:</b> (65) 3021-9499 — <b>E-mail:</b> contato@gadocerto.com.br
+                </div>
+
+                <div className="mt-3 text-xs text-black/60 underline underline-offset-4">
+                  Termos de Uso e Políticas de Privacidade
+                </div>
+              </div>
+            </form>
+          )}
+
+          {/* link inferior */}
+          <div className="mt-6 text-sm text-center">
+            <Link href="/" className="underline" style={{ color: GREEN }}>
+              Voltar ao início
+            </Link>
+          </div>
         </div>
       </div>
     </main>
   );
 }
 
-/* util: debounce */
-function useDebounce<T>(value: T, delay = 250) {
-  const [v, setV] = useState(value);
-  useEffect(() => {
-    const id = setTimeout(() => setV(value), delay);
-    return () => clearTimeout(id);
-  }, [value, delay]);
-  return v;
+/* utils de cor para foco/gradiente */
+function toRgba(hex: string, alpha = 1) {
+  const h = hex.replace("#", "");
+  const bigint = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+  const r = (bigint >> 16) & 255;
+  const g = (bigint >> 8) & 255;
+  const b = bigint & 255;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+function shade(hex: string, amount = -10) {
+  const clamp = (v: number) => Math.max(0, Math.min(255, v));
+  const h = hex.replace("#", "");
+  const bigint = parseInt(h.length === 3 ? h.split("").map((c) => c + c).join("") : h, 16);
+  const r = clamp(((bigint >> 16) & 255) + (amount * 255) / 100);
+  const g = clamp(((bigint >> 8) & 255) + (amount * 255) / 100);
+  const b = clamp((bigint & 255) + (amount * 255) / 100);
+  return `#${[r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
 }

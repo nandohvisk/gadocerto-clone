@@ -54,7 +54,7 @@ export default function LotesClient() {
     };
   }, []);
 
-  // busca lotes sempre que os params mudarem (navegação do usuário)
+  // busca lotes sempre que os params mudarem
   useEffect(() => {
     let stop = false;
     (async () => {
@@ -63,23 +63,38 @@ export default function LotesClient() {
         const qs = buildQuery(qParam || undefined, catParam || undefined, ufParam || undefined);
         const res = await fetch(`/api/lotes${qs ? `?${qs}` : ""}`, { cache: "no-store" });
         const data: any[] = await res.json();
+
         if (!stop) {
           const mapped: LoteType[] = (data ?? []).map((r: any) => ({
             id: r._id ?? r.id,
             titulo: r.titulo ?? "Lote",
             categoria: r.categoriaValue ?? r.categoriaLabel ?? r.categoria,
             raca: r.raca ?? "",
+
             idadeMeses: r.idadeMeses ?? 0,
             pesoMedioKg: r.pesoMedioKg ?? 0,
             cabecas: r.cabecas ?? 0,
+
             municipio: r.municipio ?? "",
             uf: r.uf ?? "",
+
+            // --- mídias: preserve todos os formatos possíveis ---
+            // fotos/imagens podem vir como array de urls ou objetos (o LoteCard normaliza)
             fotos: Array.isArray(r.fotos) ? r.fotos.filter(Boolean) : [],
+            imagens: Array.isArray(r.imagens) ? r.imagens.filter(Boolean) : undefined,
+
+            // vídeo pode vir como url, arquivo (asset) ou objeto
+            videoUrl:
+              r.videoUrl ??
+              r.video?.url ??
+              r.video?.asset?.url ??
+              undefined,
+            videosArquivo: Array.isArray(r.videosArquivo) ? r.videosArquivo.filter(Boolean) : undefined,
+
+            // extras
             whatsapp: r.whatsapp || "",
-            // 🔧 normaliza para string | undefined (nunca null)
             precoLabel: r.precoLabel ?? undefined,
-            // opcional no card; manter por compat
-            videoUrl: r.videoUrl ?? r.video?.url ?? r.video?.asset?.url ?? undefined,
+            emoji: r.emoji || r.badgeIcon || "🐮",
           }));
           setLotes(mapped);
         }
@@ -111,90 +126,99 @@ export default function LotesClient() {
     router.push("/lotes");
   }
 
+  // mantém sua variável para bordas/cores no card
   const primary = "var(--agro-wheat)";
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
-      <p className="text-sm font-medium text-emerald-700">Lotes</p>
-      <h1 className="h-section mt-1">Todos os lotes publicados</h1>
-      <p className="mt-1 text-sm text-gray-600">
-        Use os filtros para encontrar o lote ideal por categoria, UF ou pesquisa.
-      </p>
+    <main className="bg-white">
+      <div className="mx-auto max-w-7xl px-6 py-10">
+        <p className="text-sm font-medium text-emerald-700">Lotes</p>
+        <h1 className="h-section mt-1">Todos os lotes publicados</h1>
+        <p className="mt-1 text-sm text-gray-600">
+          Use os filtros para encontrar o lote ideal por categoria, UF ou pesquisa.
+        </p>
 
-      {/* Filtros */}
-      <form onSubmit={aplicarFiltros} className="mt-6 flex flex-col gap-3 md:flex-row md:items-center">
-        <input
-          type="text"
-          placeholder="Buscar por título, cidade, raça…"
-          className="w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
-          style={{ borderColor: "#D1D5DB" }}
-          value={textoBusca}
-          onChange={(e) => setTextoBusca(e.target.value)}
-        />
+        {/* Filtros */}
+        <form onSubmit={aplicarFiltros} className="mt-6 flex flex-col gap-3 md:flex-row md:items-center">
+          <input
+            type="text"
+            placeholder="Buscar por título, cidade, raça…"
+            className="w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
+            style={{ borderColor: "#D1D5DB" }}
+            value={textoBusca}
+            onChange={(e) => setTextoBusca(e.target.value)}
+          />
 
-        <select
-          className="md:w-56 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
-          style={{ borderColor: "#D1D5DB" }}
-          value={categoria}
-          onChange={(e) => setCategoria(e.target.value)}
-        >
-          <option value="">Categoria</option>
-          {cats.map((c, idx) => (
-            <option key={`${c.id ?? c.value ?? "opt"}-${idx}`} value={c.value}>
-              {c.label}
-            </option>
-          ))}
-        </select>
+          <select
+            className="md:w-56 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
+            style={{ borderColor: "#D1D5DB" }}
+            value={categoria}
+            onChange={(e) => setCategoria(e.target.value)}
+          >
+            <option value="">Categoria</option>
+            {cats.map((c, idx) => (
+              <option key={`${c.id ?? c.value ?? "opt"}-${idx}`} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
 
-        <select
-          className="md:w-40 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
-          style={{ borderColor: "#D1D5DB" }}
-          value={uf}
-          onChange={(e) => setUf(e.target.value)}
-        >
-          <option value="">UF</option>
-          {["AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT","PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"].map(
-            (sigla) => (
+          <select
+            className="md:w-40 w-full rounded-xl border px-4 py-3 focus:ring-2 focus:ring-amber-300"
+            style={{ borderColor: "#D1D5DB" }}
+            value={uf}
+            onChange={(e) => setUf(e.target.value)}
+          >
+            <option value="">UF</option>
+            {[
+              "AC","AL","AM","AP","BA","CE","DF","ES","GO","MA","MG","MS","MT",
+              "PA","PB","PE","PI","PR","RJ","RN","RO","RR","RS","SC","SE","SP","TO"
+            ].map((sigla) => (
               <option key={sigla} value={sigla}>
                 {sigla}
               </option>
-            )
-          )}
-        </select>
+            ))}
+          </select>
 
-        <button
-          type="submit"
-          className="btn btn-primary md:w-40 w-full"
-          style={{ backgroundImage: "linear-gradient(to bottom, #eab308, #d4a106)" }}
-        >
-          Pesquisar
-        </button>
+          <button
+            type="submit"
+            className="btn btn-primary md:w-40 w-full"
+            style={{ backgroundImage: "linear-gradient(to bottom, #eab308, #d4a106)" }}
+          >
+            Pesquisar
+          </button>
 
-        <button
-          type="button"
-          className="btn btn-secondary md:w-40 w-full"
-          onClick={limpar}
-        >
-          Limpar filtros
-        </button>
-      </form>
+          <button
+            type="button"
+            className="btn btn-secondary md:w-40 w-full"
+            onClick={limpar}
+          >
+            Limpar filtros
+          </button>
+        </form>
 
-      {/* Lista */}
-      <div className="mt-6 text-sm text-gray-600">
-        {loading ? "Carregando…" : `${lotes.length} resultado${lotes.length === 1 ? "" : "s"}`}
+        {/* Lista */}
+        <div className="mt-6 text-sm text-gray-600">
+          {loading ? "Carregando…" : `${lotes.length} resultado${lotes.length === 1 ? "" : "s"}`}
+        </div>
+
+        {!loading && lotes.length === 0 ? (
+          <div className="mt-6 rounded-xl border border-dashed p-8 text-center text-gray-600">
+            Nenhum lote encontrado.
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {lotes.map((l) => (
+              <LoteCard
+                key={l.id}
+                lote={l}
+                primary={primary}
+                isLoggedIn={false}
+              />
+            ))}
+          </div>
+        )}
       </div>
-
-      {!loading && lotes.length === 0 ? (
-        <div className="mt-6 rounded-xl border border-dashed p-8 text-center text-gray-600">
-          Nenhum lote encontrado.
-        </div>
-      ) : (
-        <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {lotes.map((l) => (
-            <LoteCard key={l.id} lote={l} primary={primary} isLoggedIn={false} />
-          ))}
-        </div>
-      )}
     </main>
   );
 }
