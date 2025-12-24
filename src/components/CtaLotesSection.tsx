@@ -1,5 +1,6 @@
-// F:\gadocerto-clone\gadocerto-clone\src\components\CtaLotesSection.tsx
+"use client";
 import React from "react";
+import Link from "next/link";
 
 export default function CtaLotesSection() {
   return (
@@ -19,13 +20,16 @@ export default function CtaLotesSection() {
             </h3>
 
             <div className="flex items-center gap-3">
-              <a
+              {/* Navegação interna via Link */}
+              <Link
                 href="/lotes"
+                prefetch={true}
                 className="inline-flex items-center justify-center rounded-lg px-5 py-3 font-semibold bg-gradient-to-b from-amber-400 to-amber-500 text-[#1c1c1c] transition-all duration-200 hover:brightness-105 active:translate-y-[1px] focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-300/40"
               >
                 Ver Lotes Agora
-              </a>
+              </Link>
 
+              {/* Link externo (âncora dentro da página) */}
               <a
                 href="#contato"
                 className="inline-flex items-center justify-center rounded-lg px-5 py-3 font-semibold bg-white/95 text-[#1f3a2d] border border-white/40 backdrop-blur transition-all duration-200 hover:bg-white active:translate-y-[1px] focus:outline-none focus-visible:ring-4 focus-visible:ring-white/40"

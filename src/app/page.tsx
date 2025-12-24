@@ -1,13 +1,15 @@
 // F:\gadocerto-clone\gadocerto-clone\src\app\page.tsx
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { sanityClient } from "@/sanity/lib/client";
 import { SITE_CONFIG_QUERY, LOTES_DESTAQUE_QUERY } from "@/sanity/lib/queries";
-import LoteCard, { Lote } from "@/components/LoteCard";
+import LoteCard from "@/components/LoteCard";
+import type { Lote } from "@/components/LoteCard";
 import HeroSearch from "@/components/HeroSearch";
 import BeneficiosSection from "@/components/BeneficiosSection";
-import CtaLotesSection from "@/components/CtaLotesSection"; // CTA
+import CtaLotesSection from "@/components/CtaLotesSection";
 
 type SiteConfig = {
   siteTitle: string;
@@ -25,6 +27,10 @@ type SiteConfig = {
 };
 
 export default async function Home() {
+  // ✅ cookies() assíncrono na sua versão
+  const cookieStore = await cookies();
+  const isLoggedIn = cookieStore.get("gc_logged_in")?.value === "1";
+
   const [config, lotsRaw] = await Promise.all([
     sanityClient.fetch<SiteConfig>(SITE_CONFIG_QUERY),
     sanityClient.fetch<any[]>(LOTES_DESTAQUE_QUERY),
@@ -47,7 +53,6 @@ export default async function Home() {
   }));
 
   const primary = config.corPrimaria || "#10b981";
-  const gradient = `linear-gradient(90deg, ${primary} 0%, ${primary}cc 100%)`;
   const isDev = process.env.NODE_ENV !== "production";
 
   return (
@@ -102,31 +107,23 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* CTA entre o vídeo e os lotes */}
-      <CtaLotesSection />
-
       {/* LOTES EM DESTAQUE */}
       <section className="relative z-10 mx-auto max-w-7xl px-6 py-14">
         <div className="flex items-end justify-between mb-6">
           <div>
             <p className="text-sm font-medium text-emerald-600">Lotes</p>
-            {/* padronizado: h-section + p-muted */}
-            <h2 className="h-section text-gray-900 dark:text-white">
-              Explore os lotes disponíveis
-            </h2>
+            <h2 className="h-section text-gray-900 dark:text-white">Explore os lotes disponíveis</h2>
             <p className="mt-1 p-muted">
               Confira animais de diversas regiões, pesos e categorias e encontre o lote que você deseja!
             </p>
           </div>
 
-          {/* PADRONIZADO: botão âmbar (primário) */}
           <Link href="/lotes" className="hidden sm:inline-flex btn btn-primary">
             Ver todos
           </Link>
         </div>
 
         {lots.length === 0 ? (
-          // estado vazio (cartão consistente)
           <div className="rounded-2xl border border-dashed border-gray-300 bg-white shadow-sm p-10 text-center">
             <h3 className="text-base font-semibold text-gray-900">Nenhum lote publicado ainda</h3>
             <p className="mt-1 text-sm p-muted">
@@ -140,14 +137,19 @@ export default async function Home() {
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {lots.map((lote) => (
-              <LoteCard key={lote.id} lote={lote} primary={primary} isLoggedIn={false} />
+              <LoteCard
+                key={lote.id}
+                lote={lote}
+                primary={primary}
+                isLoggedIn={isLoggedIn}
+              />
             ))}
           </div>
         )}
       </section>
 
-      {/* Benefícios (3 caixas) */}
       <BeneficiosSection />
+      <CtaLotesSection />
     </main>
   );
 }

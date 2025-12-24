@@ -8,8 +8,12 @@ import lote from './sanity/schemas/lote'
 import siteConfig from './sanity/schemas/siteConfig'
 import category from './sanity/schemas/category'
 import homeTabs from './sanity/schemas/homeTabs'
-import lead from './sanity/schemas/lead' // Cadastros (clientes/vendedores)
-import beneficios from './sanity/schemas/beneficios' // ✅ Seção de Benefícios (título, subtítulo e 3 caixas)
+import lead from './sanity/schemas/lead'
+import beneficios from './sanity/schemas/beneficios'
+import breed from './sanity/schemas/breed'
+
+// ✅ novo schema: CTA da Home
+import ctaHome from './sanity/schemas/ctaHome'
 
 export default defineConfig({
   name: 'default',
@@ -23,9 +27,11 @@ export default defineConfig({
       lote,
       siteConfig,
       category,
+      breed,
       homeTabs,
       lead,
-      beneficios, // ✅ registrado no Studio
+      beneficios,
+      ctaHome, // ✅ registrado aqui
     ],
   },
 })

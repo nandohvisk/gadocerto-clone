@@ -33,28 +33,28 @@ export const LOTES_PROJECTION = /* groq */ `
 {
   _id,
   titulo,
-  categoria,
+  "categoria": coalesce(categoriaRef->label, categoriaRef->title, categoria),
   raca,
   idadeMeses,
   pesoMedioKg,
   cabecas,
   municipio,
   uf,
-
-  // imagens (urls)
   "fotos": coalesce(fotos[].asset->url, []),
-
-  // vídeo (url se existir)
-  "videoUrl": video.asset->url,
-
-  // extras usados nos cards
+  "videoUrl": coalesce(
+    videosArquivo[0].asset->url,
+    videosUrl[0],
+    videos[0].asset->url,
+    video.asset->url
+  ),
   precoLabel,
   whatsapp,
-  badgeIcon
+  badgeIcon,
+  emoji
 }
 `;
 
-// ========== HOME: LOTES EM DESTAQUE (AGORA SEM DEPENDER DE FLAGS) ==========
+// ========== HOME: LOTES EM DESTAQUE ==========
 export const LOTES_DESTAQUE_QUERY = /* groq */ `
 *[_type == "lote"]
 | order(_createdAt desc)[0...6]
@@ -72,4 +72,25 @@ ${LOTES_PROJECTION}
 export const LOTE_BY_ID_QUERY = /* groq */ `
 *[_type == "lote" && (_id == $id || slug.current == $id)][0]
 ${LOTES_PROJECTION}
+`;
+
+// ========== RELACIONADOS: MESMA CIDADE ==========
+export const LOTES_RELACIONADOS_QUERY = /* groq */ `
+*[_type == "lote" && _id != $id && (
+    lower(municipio) == lower($municipio) ||
+    municipio match $municipioPrefix
+  )]
+| order(_createdAt desc)[0...6]
+${LOTES_PROJECTION}
+`;
+
+// 🔹 textos do formulário de busca (Hero)
+export const HOME_TABS_QUERY = `
+  *[_type == "abasDaHome" && ativo == true][0]{
+    ativo,
+    tituloComprar,
+    tituloVender,
+    placeholderLocal,
+    botaoProcurar
+  }
 `;

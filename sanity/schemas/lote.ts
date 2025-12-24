@@ -1,5 +1,6 @@
-// ./sanity/schemas/lote.ts
+// F:\gadocerto-clone\gadocerto-clone\sanity\schemas\lote.ts
 import {defineField, defineType} from 'sanity'
+import CityAutocomplete from '../components/CityAutocomplete' // autocomplete IBGE
 
 export default defineType({
   name: 'lote',
@@ -13,17 +14,15 @@ export default defineType({
       validation: r => r.required(),
     }),
 
-    // ✅ NOVO: referência para Category (dropdown no Studio)
+    // Categoria (referência) + legado oculto
     defineField({
       name: 'categoriaRef',
       title: 'Categoria',
       type: 'reference',
       to: [{ type: 'category' }],
+      options: { disableNew: false },
       validation: r => r.required(),
-      options: { disableNew: false }, // permite criar categoria pela UI, se quiser
     }),
-
-    // ⚠️ LEGADO: mantém o campo de texto antigo (não aparece mais no Studio)
     defineField({
       name: 'categoria',
       title: 'Categoria (LEGADO — não usar)',
@@ -31,23 +30,52 @@ export default defineType({
       hidden: true,
     }),
 
-    defineField({ name: 'raca',         title: 'Raça',           type: 'string' }),
-    defineField({ name: 'idadeMeses',   title: 'Idade (meses)',  type: 'number' }),
-    defineField({ name: 'pesoMedioKg',  title: 'Peso médio (kg)',type: 'number' }),
-    defineField({ name: 'cabecas',      title: 'Cabeças',        type: 'number' }),
-    defineField({ name: 'municipio',    title: 'Município',      type: 'string' }),
+    // Raça (referência) + legado oculto
+    defineField({
+      name: 'racaRef',
+      title: 'Raça',
+      type: 'reference',
+      to: [{ type: 'breed' }],
+      options: { disableNew: false },
+      description: 'Selecione uma raça cadastrada em “Raça”.',
+    }),
+    defineField({
+      name: 'raca',
+      title: 'Raça (LEGADO — não usar)',
+      type: 'string',
+      hidden: true,
+    }),
 
-    // Mantive como string (compatível). Se quiser, podemos trocar por dropdown depois.
-    defineField({ name: 'uf',           title: 'UF',             type: 'string' }),
+    defineField({ name: 'idadeMeses',  title: 'Idade (meses)',   type: 'number' }),
+    defineField({ name: 'pesoMedioKg', title: 'Peso médio (kg)', type: 'number' }),
+    defineField({ name: 'cabecas',     title: 'Cabeças',         type: 'number' }),
+
+    // Município com AUTOCOMPLETE (salvo como "Cidade/uf", ex.: Cuiabá/mt)
+    defineField({
+      name: 'municipio',
+      title: 'Município',
+      type: 'string',
+      components: { input: CityAutocomplete },
+      description: 'Digite e selecione a cidade. Será salvo como "Cidade/uf" (ex.: Cuiabá/mt).',
+      validation: r => r.required(),
+    }),
+
+    // UF passa a ser campo LEGADO/oculto — será derivado do município (Cuiabá/mt → mt)
+    defineField({
+      name: 'uf',
+      title: 'UF (LEGADO — derivado de Município)',
+      type: 'string',
+      hidden: true,
+      readOnly: true,
+    }),
 
     defineField({
       name: 'whatsapp',
       title: 'WhatsApp (somente dígitos, com DDI)',
       type: 'string',
-      // validation: (Rule) => Rule.regex(/^\d*$/).warning('Somente números, sem + ou traços'),
     }),
 
-    // Fotos do lote
+    // Fotos
     defineField({
       name: 'fotos',
       title: 'Fotos',
@@ -55,7 +83,7 @@ export default defineType({
       of: [{ type: 'image', options: { hotspot: true } }],
     }),
 
-    // Vídeos do lote (upload direto)
+    // Vídeos (upload)
     defineField({
       name: 'videosArquivo',
       title: 'Vídeos (upload)',
@@ -63,13 +91,18 @@ export default defineType({
       of: [{ type: 'file', options: { accept: 'video/*' } }],
     }),
 
-    // Alternativa: links externos (YouTube, etc.)
+    // Vídeos (links externos)
     defineField({
       name: 'videosUrl',
       title: 'Vídeos (links externos)',
       type: 'array',
       of: [{ type: 'url' }],
     }),
+
+    // Extras
+    defineField({ name: 'precoLabel', title: 'Selo de preço', type: 'string' }),
+    defineField({ name: 'badgeIcon',  title: 'Ícone/Badge (emoji opcional)', type: 'string' }),
+    defineField({ name: 'emoji',      title: 'Emoji (ex.: 🐮)', type: 'string' }),
   ],
 
   preview: {
@@ -79,10 +112,20 @@ export default defineType({
       categoriaLabel: 'categoriaRef.label',
       categoriaTitle: 'categoriaRef.title',
       categoriaLegacy: 'categoria',
+      racaNome: 'racaRef.nome',
+      municipio: 'municipio',
     },
-    prepare({ title, media, categoriaLabel, categoriaTitle, categoriaLegacy }) {
-      const subtitle = categoriaLabel || categoriaTitle || categoriaLegacy || 'Sem categoria'
-      return { title: title || 'Lote', media, subtitle }
+    prepare({ title, media, categoriaLabel, categoriaTitle, categoriaLegacy, racaNome, municipio }) {
+      const parts: string[] = []
+      const cat = categoriaLabel || categoriaTitle || categoriaLegacy
+      if (cat) parts.push(cat)
+      if (racaNome) parts.push(racaNome)
+      if (municipio) parts.push(municipio)
+      return {
+        title: title || 'Lote',
+        media,
+        subtitle: parts.join(' • ') || 'Sem categoria',
+      }
     },
   },
 })
